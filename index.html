@@ -168,6 +168,9 @@
         .channel-name {
             font-weight: bold;
             margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .channel-group {
@@ -298,6 +301,7 @@
         let convergeChannels = [];
         let cignalChannels = [];
         let isLoadingPlaylist = false;
+        let currentStreamUrl = '';
         
         // Playlist URLs
         const PLAYLIST_URLS = {
@@ -337,11 +341,11 @@
                 // Create Player instance
                 player = new shaka.Player(video);
                 
-                // Configure player for HLS support
+                // Configure player
                 player.configure({
                     drm: {
                         servers: DRM_CONFIG.converge.servers,
-                        clearKeys: DRM_CONFIG.cignal.clearKeys
+                        clearKeys: {}
                     },
                     streaming: {
                         bufferingGoal: 30,
@@ -349,11 +353,6 @@
                         bufferBehind: 30,
                         useNativeHlsOnSafari: false,
                         lowLatencyMode: true
-                    },
-                    manifest: {
-                        dash: {
-                            ignoreMinBufferTime: true
-                        }
                     }
                 });
                 
@@ -370,11 +369,6 @@
                     updateStatus(`Now playing: ${getCurrentChannelName()}`);
                 });
                 
-                // Listen for DRM sessions
-                player.addEventListener('drm-session-update', (event) => {
-                    console.log('DRM Session Update:', event);
-                });
-                
                 return true;
             } catch (error) {
                 console.error('Player initialization error:', error);
@@ -383,7 +377,7 @@
             }
         }
         
-        // Parse M3U playlist and extract ClearKey information
+        // Parse M3U playlist with Cignal-specific format
         async function parseM3UPlaylist(url, playlistType) {
             try {
                 showLoading(true, `Loading ${playlistType} playlist...`);
@@ -397,66 +391,76 @@
                 const lines = text.split('\n');
                 const channels = [];
                 let currentChannel = {};
-                let currentKeys = [];
+                let currentKeys = {};
                 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     
                     if (line.startsWith('#EXTINF:')) {
-                        // Parse channel info
+                        // Parse channel info (Cignal format)
                         const info = line.substring(8);
                         const commaIndex = info.indexOf(',');
                         const attrs = commaIndex > 0 ? info.substring(0, commaIndex) : '';
                         const name = commaIndex > 0 ? info.substring(commaIndex + 1) : info;
                         
-                        // Parse attributes
-                        const attrPairs = attrs.split(' ');
-                        const attributes = {};
-                        attrPairs.forEach(pair => {
-                            const [key, value] = pair.split('=');
-                            if (key && value) {
-                                attributes[key] = value.replace(/"/g, '');
-                            }
-                        });
+                        // Parse tvg attributes
+                        const tvgId = extractAttribute(line, 'tvg-id');
+                        const tvgLogo = extractAttribute(line, 'tvg-logo');
+                        const groupTitle = extractAttribute(line, 'group-title');
                         
                         currentChannel = {
                             name: name.trim(),
-                            tvgId: attributes['tvg-id'] || '',
-                            tvgName: attributes['tvg-name'] || name.trim(),
-                            tvgLogo: attributes['tvg-logo'] || '',
-                            groupTitle: attributes['group-title'] || 'General',
-                            keys: [] // Store keys for this channel
+                            tvgId: tvgId || '',
+                            tvgLogo: tvgLogo || '',
+                            groupTitle: groupTitle || 'General',
+                            keys: {}
                         };
                         
-                        // Reset keys for this channel
-                        currentKeys = [];
+                    } else if (line.startsWith('#KODIPROP:inputstream.adaptive.license_type=')) {
+                        const licenseType = line.substring('#KODIPROP:inputstream.adaptive.license_type='.length);
+                        if (licenseType.trim() === 'clearkey') {
+                            currentKeys.type = 'clearkey';
+                        }
                         
-                    } else if (line.startsWith('#EXT-X-KEY:')) {
-                        // Parse DRM/encryption key information
-                        const keyInfo = this.parseKeyAttributes(line.substring(11));
-                        if (keyInfo && keyInfo.METHOD === 'AES-128' || keyInfo.METHOD === 'SAMPLE-AES') {
-                            currentKeys.push(keyInfo);
+                    } else if (line.startsWith('#KODIPROP:inputstream.adaptive.license_key=')) {
+                        const licenseKey = line.substring('#KODIPROP:inputstream.adaptive.license_key='.length);
+                        if (currentKeys.type === 'clearkey') {
+                            // Parse ClearKey format: key_id:key
+                            const parts = licenseKey.split(':');
+                            if (parts.length === 2) {
+                                currentKeys.keyId = parts[0];
+                                currentKeys.key = parts[1];
+                            }
                         }
                         
                     } else if (line && !line.startsWith('#') && currentChannel.name) {
                         // This is the stream URL
                         currentChannel.url = line.trim();
                         
-                        // Store keys with channel
-                        currentChannel.keys = [...currentKeys];
+                        // Add ClearKey data if available
+                        if (currentKeys.keyId && currentKeys.key) {
+                            currentChannel.keys = { ...currentKeys };
+                            
+                            // Cache ClearKey data for this URL
+                            if (playlistType === 'cignal') {
+                                const clearKeyConfig = {
+                                    clearKeys: {
+                                        [currentKeys.keyId]: currentKeys.key
+                                    },
+                                    keyIds: [currentKeys.keyId]
+                                };
+                                clearKeyCache.set(currentChannel.url, clearKeyConfig);
+                            }
+                        }
                         
                         // Check if it's a valid URL
                         if (currentChannel.url.startsWith('http')) {
                             channels.push({...currentChannel});
-                            
-                            // Cache ClearKey data for this URL if available
-                            if (playlistType === 'cignal' && currentKeys.length > 0) {
-                                cacheClearKeyData(currentChannel.url, currentKeys);
-                            }
                         }
                         
+                        // Reset for next channel
                         currentChannel = {};
-                        currentKeys = [];
+                        currentKeys = {};
                     }
                 }
                 
@@ -470,79 +474,18 @@
             }
         }
         
-        // Parse key attributes from EXT-X-KEY tag
-        function parseKeyAttributes(keyLine) {
-            const attrs = {};
-            const parts = keyLine.split(',');
-            
-            parts.forEach(part => {
-                const [key, value] = part.split('=');
-                if (key && value) {
-                    attrs[key.trim()] = value.trim().replace(/"/g, '');
-                }
-            });
-            
-            return attrs;
-        }
-        
-        // Cache ClearKey data for a specific stream URL
-        function cacheClearKeyData(streamUrl, keys) {
-            const clearKeyData = {
-                keys: {},
-                keyIds: []
-            };
-            
-            keys.forEach(keyInfo => {
-                if (keyInfo.URI && keyInfo.KEYFORMAT === 'com.widevine.alpha') {
-                    // For Widevine
-                    // You may need to fetch the license from the URI
-                    console.log('Widevine license URL:', keyInfo.URI);
-                } else if (keyInfo.URI && keyInfo.KEYFORMAT === 'identity') {
-                    // For identity keys
-                    console.log('Identity key URL:', keyInfo.URI);
-                } else if (keyInfo.URI && keyInfo.URI.startsWith('data:')) {
-                    // For inline keys (common in ClearKey)
-                    try {
-                        const dataUri = keyInfo.URI;
-                        if (dataUri.includes('keyid=') && dataUri.includes('key=')) {
-                            // Parse data URI
-                            const keyidMatch = dataUri.match(/keyid=([^&]*)/);
-                            const keyMatch = dataUri.match(/key=([^&]*)/);
-                            
-                            if (keyidMatch && keyMatch) {
-                                const keyid = atob(keyidMatch[1].replace(/-/g, '+').replace(/_/g, '/'));
-                                const key = atob(keyMatch[1].replace(/-/g, '+').replace(/_/g, '/'));
-                                
-                                // Convert to hex
-                                const keyidHex = Array.from(keyid).map(c => 
-                                    c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
-                                const keyHex = Array.from(key).map(c => 
-                                    c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
-                                
-                                clearKeyData.keys[keyidHex] = keyHex;
-                                clearKeyData.keyIds.push(keyidHex);
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Error parsing inline key:', e);
-                    }
-                }
-            });
-            
-            if (Object.keys(clearKeyData.keys).length > 0) {
-                clearKeyCache.set(streamUrl, clearKeyData);
-                console.log('Cached ClearKey data for:', streamUrl, clearKeyData);
-            }
+        // Extract attribute from EXTINF line
+        function extractAttribute(line, attribute) {
+            const regex = new RegExp(`${attribute}="([^"]*)"`);
+            const match = line.match(regex);
+            return match ? match[1] : '';
         }
         
         // Get ClearKey configuration for a specific stream
         function getClearKeyConfig(streamUrl) {
             const cachedData = clearKeyCache.get(streamUrl);
             if (cachedData) {
-                return {
-                    clearKeys: cachedData.keys,
-                    keyIds: cachedData.keyIds
-                };
+                return cachedData;
             }
             return null;
         }
@@ -585,104 +528,100 @@
         async function loadStream(streamUrl, channelName, playlistType) {
             try {
                 showLoading(true, `Loading ${channelName}...`);
+                currentStreamUrl = streamUrl;
                 
                 // Clear previous error
                 hideError();
                 
-                // Configure DRM based on playlist type
                 if (playlistType === 'converge') {
+                    // Configure Widevine for Converge
                     player.configure({
                         drm: {
                             servers: DRM_CONFIG.converge.servers,
                             clearKeys: {}
                         }
                     });
+                    
+                    await player.load(streamUrl);
+                    currentPlaylist = playlistType;
+                    updateStatus(`Now playing: ${channelName} (Widevine DRM)`);
+                    
                 } else if (playlistType === 'cignal') {
-                    // Get ClearKey configuration for this specific stream
+                    // Get ClearKey configuration for this stream
                     const clearKeyConfig = getClearKeyConfig(streamUrl);
                     
                     if (clearKeyConfig && clearKeyConfig.clearKeys) {
-                        console.log('Using ClearKey configuration:', clearKeyConfig);
+                        console.log('Using ClearKey for Cignal:', clearKeyConfig);
                         
+                        // Configure ClearKey for Cignal
                         player.configure({
                             drm: {
                                 servers: {},
-                                clearKeys: clearKeyConfig.clearKeys,
-                                advanced: {
-                                    [streamUrl]: {
-                                        'videoRobustness': 'SW_SECURE_CRYPTO',
-                                        'audioRobustness': 'SW_SECURE_CRYPTO'
-                                    }
-                                }
+                                clearKeys: clearKeyConfig.clearKeys
                             }
                         });
+                        
+                        // Register a license request filter to handle ClearKey
+                        player.getNetworkingEngine().registerRequestFilter(async (type, request) => {
+                            if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
+                                console.log('Processing ClearKey license request');
+                                
+                                // For ClearKey, we need to provide a proper license response
+                                const license = {
+                                    keys: []
+                                };
+                                
+                                Object.entries(clearKeyConfig.clearKeys).forEach(([keyId, key]) => {
+                                    license.keys.push({
+                                        kty: 'oct',
+                                        kid: keyId,
+                                        k: key
+                                    });
+                                });
+                                
+                                // Set the response
+                                request.headers['Content-Type'] = 'application/json';
+                                request.body = shaka.util.StringUtils.toUTF8(JSON.stringify(license));
+                                request.allowCrossSiteCredentials = true;
+                            }
+                        });
+                        
+                        await player.load(streamUrl);
+                        currentPlaylist = playlistType;
+                        updateStatus(`Now playing: ${channelName} (ClearKey DRM)`);
+                        
                     } else {
-                        console.log('No ClearKey configuration found, trying without DRM');
+                        // No DRM, try to load without DRM
+                        console.log('No ClearKey found, trying without DRM');
                         player.configure({
                             drm: {
                                 servers: {},
                                 clearKeys: {}
                             }
                         });
+                        
+                        await player.load(streamUrl);
+                        currentPlaylist = playlistType;
+                        updateStatus(`Now playing: ${channelName}`);
                     }
-                }
-                
-                // Try to load with Shaka Player
-                try {
-                    // Set up license request hook for ClearKey
-                    player.getNetworkingEngine().registerRequestFilter(async (type, request) => {
-                        if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
-                            console.log('License request intercepted:', request);
-                            
-                            // For ClearKey, we might need to provide keys differently
-                            if (playlistType === 'cignal') {
-                                const clearKeyConfig = getClearKeyConfig(streamUrl);
-                                if (clearKeyConfig) {
-                                    // Create ClearKey license response
-                                    const license = {
-                                        keys: [],
-                                        type: 'temporary'
-                                    };
-                                    
-                                    Object.entries(clearKeyConfig.clearKeys).forEach(([keyId, key]) => {
-                                        license.keys.push({
-                                            kty: 'oct',
-                                            kid: keyId,
-                                            k: key
-                                        });
-                                    });
-                                    
-                                    // Return the license
-                                    request.headers['Content-Type'] = 'application/json';
-                                    request.body = new Uint8Array(
-                                        new TextEncoder().encode(JSON.stringify(license))
-                                    );
-                                }
-                            }
-                        }
-                    });
-                    
-                    await player.load(streamUrl);
-                    currentPlaylist = playlistType;
-                    updateStatus(`Now playing: ${channelName} (Shaka Player)`);
-                    
-                } catch (shakaError) {
-                    console.log('Shaka Player failed, trying fallback...', shakaError);
-                    
-                    // If Shaka fails, try HLS.js or native playback
-                    tryAlternativePlayback(streamUrl, channelName, playlistType);
                 }
                 
             } catch (error) {
                 console.error('Error loading stream:', error);
-                showError(`Failed to load stream: ${error.message}`);
+                
+                // Try alternative playback methods
+                if (playlistType === 'cignal') {
+                    tryAlternativePlayback(streamUrl, channelName);
+                } else {
+                    showError(`Failed to load stream: ${error.message}`);
+                }
             } finally {
                 showLoading(false);
             }
         }
         
-        // Alternative playback method
-        function tryAlternativePlayback(streamUrl, channelName, playlistType) {
+        // Alternative playback method for HLS
+        function tryAlternativePlayback(streamUrl, channelName) {
             const video = document.getElementById('video');
             
             // First, try to detach Shaka Player
@@ -800,14 +739,14 @@
                 channelElement.className = 'channel-item';
                 channelElement.dataset.index = index;
                 channelElement.dataset.playlist = playlistType;
-                channelElement.title = `DRM: ${channel.keys.length > 0 ? 'Protected' : 'Unprotected'}`;
+                channelElement.title = `Group: ${channel.groupTitle}`;
                 
                 // Create channel logo
                 const logoLetter = channel.name.charAt(0).toUpperCase();
                 const logoColor = getLogoColor(channel.name);
                 
                 // Add DRM indicator
-                const drmIndicator = channel.keys.length > 0 ? '🔒' : '';
+                const drmIndicator = channel.keys.keyId ? '🔒' : '';
                 
                 channelElement.innerHTML = `
                     <div class="channel-logo" style="background: ${logoColor}">
@@ -903,7 +842,7 @@
             const activeChannel = document.querySelector('.channel-item.active');
             if (activeChannel) {
                 const channelName = activeChannel.querySelector('.channel-name');
-                return channelName ? channelName.textContent : 'Unknown Channel';
+                return channelName ? channelName.textContent.replace(' 🔒', '') : 'Unknown Channel';
             }
             return 'Unknown Channel';
         }
@@ -911,7 +850,25 @@
         // Handle player errors
         function onPlayerError(event) {
             console.error('Player error:', event.detail);
-            showError(`Playback error: ${event.detail.code}`);
+            
+            // Check if it's a DRM error
+            if (event.detail.code === 6007 || event.detail.code === 6016) {
+                // DRM error, try fallback
+                if (currentPlaylist === 'cignal' && currentStreamUrl) {
+                    showError('DRM error. Trying alternative playback...');
+                    setTimeout(() => {
+                        const activeChannel = document.querySelector('.channel-item.active');
+                        if (activeChannel) {
+                            const channelName = getCurrentChannelName();
+                            tryAlternativePlayback(currentStreamUrl, channelName);
+                        }
+                    }, 1000);
+                } else {
+                    showError(`DRM Error: ${event.detail.message}`);
+                }
+            } else {
+                showError(`Playback error: ${event.detail.message}`);
+            }
         }
         
         // Initialize when page loads
