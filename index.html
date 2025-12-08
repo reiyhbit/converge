@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IPTV Player | Converge & Cignal</title>
+    <title>REYNIEL Player | Converge & Cignal</title>
     <style>
         * {
             margin: 0;
@@ -22,20 +22,86 @@
         
         header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 15px;
-            text-align: center;
+            padding: 10px 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
         .logo {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 5px;
         }
         
         .tagline {
-            font-size: 14px;
+            font-size: 12px;
             opacity: 0.9;
+            text-align: center;
+        }
+        
+        .player-controls-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 8px 0;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .volume-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .volume-icon {
+            font-size: 18px;
+            min-width: 24px;
+        }
+        
+        .channel-nav {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .channel-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .channel-btn:hover {
+            background: rgba(255,255,255,0.2);
         }
         
         .player-container {
@@ -60,7 +126,7 @@
         }
         
         .controls {
-            padding: 15px;
+            padding: 12px;
             background: #2d2d2d;
             display: flex;
             gap: 10px;
@@ -69,13 +135,13 @@
         }
         
         .playlist-btn {
-            padding: 12px 20px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-width: 140px;
+            min-width: 120px;
             font-size: 14px;
         }
         
@@ -128,24 +194,28 @@
         .channel-list {
             overflow-y: auto;
             flex: 1;
+            padding: 5px 0;
         }
         
         .channel-item {
             padding: 12px 15px;
             background: #3a3a3a;
-            border-bottom: 1px solid #4a4a4a;
+            margin: 2px 5px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
         }
         
         .channel-item:hover {
             background: #4a4a4a;
+            transform: translateX(2px);
         }
         
         .channel-item.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
         }
         
         .channel-logo {
@@ -159,10 +229,13 @@
             justify-content: center;
             font-weight: bold;
             font-size: 12px;
+            flex-shrink: 0;
         }
         
         .channel-info {
             flex: 1;
+            min-width: 0;
+            overflow: hidden;
         }
         
         .channel-name {
@@ -171,11 +244,17 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .channel-group {
             font-size: 11px;
             opacity: 0.7;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .status {
@@ -226,25 +305,67 @@
             text-align: center;
         }
         
+        /* Keyboard shortcuts info */
+        .shortcuts-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            opacity: 0.7;
+            z-index: 100;
+        }
+        
         /* Mobile-specific styles */
         @media (max-width: 768px) {
             body {
                 height: 100vh;
             }
             
+            .header-top {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+            
+            .player-controls-top {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .volume-container {
+                width: 100%;
+            }
+            
+            .channel-nav {
+                width: 100%;
+                justify-content: center;
+            }
+            
             .controls {
-                padding: 10px;
+                padding: 8px;
             }
             
             .playlist-btn {
                 flex: 1;
                 min-width: 0;
-                padding: 10px;
+                padding: 8px 12px;
                 font-size: 13px;
             }
             
             .channel-list-container {
                 margin: 5px 10px;
+            }
+            
+            .channel-item {
+                padding: 10px 12px;
+                margin: 2px;
+            }
+            
+            .shortcuts-info {
+                display: none;
             }
         }
         
@@ -253,13 +374,46 @@
                 max-height: 150px;
             }
         }
+        
+        /* Touch-friendly scrollbar */
+        .channel-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .channel-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+        
+        .channel-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.4/shaka-player.ui.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.4/controls.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <header>
-        <div class="logo">IPTV Player</div>
+        <div class="header-top">
+            <div class="logo">Reyniel Player</div>
+            <div class="player-controls-top">
+                <div class="volume-container">
+                    <span class="volume-icon">🔊</span>
+                    <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="100">
+                    <span class="volume-icon" id="volume-value">100%</span>
+                </div>
+                <div class="channel-nav">
+                    <button class="channel-btn" id="channel-down">
+                        <i class="fas fa-chevron-left"></i> CH-
+                    </button>
+                    <button class="channel-btn" id="channel-up">
+                        CH+ <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="tagline">Converge & Cignal Channels</div>
     </header>
     
@@ -293,6 +447,12 @@
             </div>
         </div>
     </div>
+    
+    <div class="shortcuts-info">
+        <div>↑/↓: Change Channel</div>
+        <div>←/→: Volume</div>
+        <div>Space: Play/Pause</div>
+    </div>
 
     <script>
         // Initialize variables
@@ -302,6 +462,7 @@
         let cignalChannels = [];
         let isLoadingPlaylist = false;
         let currentStreamUrl = '';
+        let currentChannelIndex = -1;
         
         // Playlist URLs
         const PLAYLIST_URLS = {
@@ -516,12 +677,62 @@
                 updateChannelList(playlistType);
                 updateStatus(`${playlistType.toUpperCase()} playlist loaded with ${channels.length} channels`);
                 
+                // Auto-select first channel
+                if (channels.length > 0) {
+                    currentChannelIndex = 0;
+                    selectChannelByIndex(0, playlistType);
+                }
+                
             } catch (error) {
                 console.error('Error loading playlist:', error);
                 updateStatus(`Error loading playlist: ${error.message}`);
             } finally {
                 isLoadingPlaylist = false;
             }
+        }
+        
+        // Select channel by index
+        function selectChannelByIndex(index, playlistType) {
+            const channels = playlistType === 'converge' ? convergeChannels : cignalChannels;
+            
+            if (index >= 0 && index < channels.length) {
+                currentChannelIndex = index;
+                
+                // Update active channel in UI
+                const channelElements = document.querySelectorAll('.channel-item');
+                if (channelElements.length > index) {
+                    channelElements.forEach((item, i) => {
+                        if (i === index) {
+                            item.classList.add('active');
+                            // Scroll into view
+                            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } else {
+                            item.classList.remove('active');
+                        }
+                    });
+                    
+                    // Load the channel
+                    const channel = channels[index];
+                    loadStream(channel.url, channel.name, playlistType);
+                }
+            }
+        }
+        
+        // Change channel (next/previous)
+        function changeChannel(direction) {
+            if (currentPlaylist === '') return;
+            
+            const channels = currentPlaylist === 'converge' ? convergeChannels : cignalChannels;
+            if (channels.length === 0) return;
+            
+            let newIndex;
+            if (direction === 'next') {
+                newIndex = (currentChannelIndex + 1) % channels.length;
+            } else {
+                newIndex = (currentChannelIndex - 1 + channels.length) % channels.length;
+            }
+            
+            selectChannelByIndex(newIndex, currentPlaylist);
         }
         
         // Load a stream with proper DRM configuration
@@ -758,37 +969,52 @@
                     </div>
                 `;
                 
-                channelElement.addEventListener('click', async () => {
-                    // Remove active class from all channels
-                    document.querySelectorAll('.channel-item').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    
-                    // Add active class to clicked channel
-                    channelElement.classList.add('active');
-                    
-                    // Reinitialize player if needed
-                    if (!player || player.isDestroyed()) {
-                        await initPlayer();
-                    }
-                    
-                    // Load the selected channel
-                    loadStream(channel.url, channel.name, playlistType);
+                // Fix: Use regular function instead of async for click handler
+                channelElement.addEventListener('click', () => {
+                    handleChannelClick(index, playlistType);
                 });
                 
                 channelList.appendChild(channelElement);
             });
             
             // Auto-select first channel if none selected
-            if (channelList.children.length > 0 && !document.querySelector('.channel-item.active')) {
+            if (currentChannelIndex < 0 && channelList.children.length > 0) {
+                currentChannelIndex = 0;
                 const firstChannel = channelList.children[0];
                 firstChannel.classList.add('active');
                 
-                // Auto-play first channel if this is the current playlist
-                if (currentPlaylist === playlistType) {
-                    const firstChannelData = channels[0];
-                    loadStream(firstChannelData.url, firstChannelData.name, playlistType);
-                }
+                // Auto-play first channel
+                const firstChannelData = channels[0];
+                loadStream(firstChannelData.url, firstChannelData.name, playlistType);
+            }
+        }
+        
+        // Handle channel click
+        async function handleChannelClick(index, playlistType) {
+            // Remove active class from all channels
+            document.querySelectorAll('.channel-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to clicked channel
+            const clickedElement = document.querySelector(`.channel-item[data-index="${index}"]`);
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+                clickedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            currentChannelIndex = index;
+            currentPlaylist = playlistType;
+            
+            // Reinitialize player if needed
+            if (!player || player.isDestroyed()) {
+                await initPlayer();
+            }
+            
+            // Load the selected channel
+            const channels = playlistType === 'converge' ? convergeChannels : cignalChannels;
+            if (channels[index]) {
+                loadStream(channels[index].url, channels[index].name, playlistType);
             }
         }
         
@@ -871,6 +1097,25 @@
             }
         }
         
+        // Update volume display
+        function updateVolumeDisplay(value) {
+            const volumeValue = document.getElementById('volume-value');
+            const video = document.getElementById('video');
+            
+            video.volume = value / 100;
+            volumeValue.textContent = `${value}%`;
+            
+            // Update volume icon
+            const volumeIcon = document.querySelector('.volume-icon');
+            if (value === 0) {
+                volumeIcon.textContent = '🔇';
+            } else if (value < 50) {
+                volumeIcon.textContent = '🔉';
+            } else {
+                volumeIcon.textContent = '🔊';
+            }
+        }
+        
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async () => {
             // Add HLS.js library for fallback
@@ -880,6 +1125,24 @@
             
             // Initialize player
             await initPlayer();
+            
+            // Set up volume control
+            const volumeSlider = document.getElementById('volume-slider');
+            volumeSlider.addEventListener('input', (e) => {
+                updateVolumeDisplay(e.target.value);
+            });
+            
+            // Set initial volume
+            updateVolumeDisplay(100);
+            
+            // Set up channel navigation buttons
+            document.getElementById('channel-up').addEventListener('click', () => {
+                changeChannel('next');
+            });
+            
+            document.getElementById('channel-down').addEventListener('click', () => {
+                changeChannel('prev');
+            });
             
             // Set up playlist buttons
             document.getElementById('converge-btn').addEventListener('click', async () => {
@@ -916,6 +1179,52 @@
             setTimeout(() => {
                 document.getElementById('converge-btn').click();
             }, 1000);
+            
+            // Handle keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Prevent default for media keys
+                if ([32, 37, 38, 39, 40, 107, 109].includes(e.keyCode)) {
+                    e.preventDefault();
+                }
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                    case 'ChannelUp':
+                    case '+':
+                        changeChannel('next');
+                        break;
+                        
+                    case 'ArrowDown':
+                    case 'ChannelDown':
+                    case '-':
+                        changeChannel('prev');
+                        break;
+                        
+                    case 'ArrowRight':
+                        // Volume up
+                        const volumeUp = Math.min(100, parseInt(volumeSlider.value) + 10);
+                        volumeSlider.value = volumeUp;
+                        updateVolumeDisplay(volumeUp);
+                        break;
+                        
+                    case 'ArrowLeft':
+                        // Volume down
+                        const volumeDown = Math.max(0, parseInt(volumeSlider.value) - 10);
+                        volumeSlider.value = volumeDown;
+                        updateVolumeDisplay(volumeDown);
+                        break;
+                        
+                    case ' ':
+                        // Play/Pause
+                        const video = document.getElementById('video');
+                        if (video.paused) {
+                            video.play();
+                        } else {
+                            video.pause();
+                        }
+                        break;
+                }
+            });
             
             // Handle fullscreen changes
             document.addEventListener('fullscreenchange', () => {
