@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>REYNIEL Player | Converge & Cignal</title>
+    <title>IPTV Player | Cignal & Converge</title>
     <style>
         * {
             margin: 0;
@@ -145,13 +145,13 @@
             font-size: 14px;
         }
         
-        #converge-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        #cignal-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
         }
         
-        #cignal-btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        #converge-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
         }
         
@@ -397,7 +397,7 @@
 <body>
     <header>
         <div class="header-top">
-            <div class="logo">Reyniel Player</div>
+            <div class="logo">IPTV Player</div>
             <div class="player-controls-top">
                 <div class="volume-container">
                     <span class="volume-icon">🔊</span>
@@ -414,7 +414,7 @@
                 </div>
             </div>
         </div>
-        <div class="tagline">Converge & Cignal Channels</div>
+        <div class="tagline">Cignal & Converge Channels</div>
     </header>
     
     <div class="error-message" id="error-message"></div>
@@ -432,8 +432,8 @@
     <div class="status" id="status">Select a playlist to start streaming</div>
     
     <div class="controls">
+        <button class="playlist-btn active" id="cignal-btn">Cignal Playlist</button>
         <button class="playlist-btn" id="converge-btn">Converge Playlist</button>
-        <button class="playlist-btn" id="cignal-btn">Cignal Playlist</button>
     </div>
     
     <div class="channel-list-container">
@@ -443,7 +443,7 @@
         </div>
         <div class="channel-list" id="channel-list">
             <div class="channel-item" style="text-align: center; opacity: 0.7; justify-content: center;">
-                Select a playlist to view channels
+                Loading Cignal playlist...
             </div>
         </div>
     </div>
@@ -457,12 +457,12 @@
     <script>
         // Initialize variables
         let player;
-        let currentPlaylist = '';
+        let currentPlaylist = 'cignal';
         let convergeChannels = [];
         let cignalChannels = [];
         let isLoadingPlaylist = false;
         let currentStreamUrl = '';
-        let currentChannelIndex = -1;
+        let currentChannelIndex = 0;
         
         // Playlist URLs
         const PLAYLIST_URLS = {
@@ -505,7 +505,7 @@
                 // Configure player
                 player.configure({
                     drm: {
-                        servers: DRM_CONFIG.converge.servers,
+                        servers: {},
                         clearKeys: {}
                     },
                     streaming: {
@@ -677,10 +677,12 @@
                 updateChannelList(playlistType);
                 updateStatus(`${playlistType.toUpperCase()} playlist loaded with ${channels.length} channels`);
                 
-                // Auto-select first channel
+                // Auto-select and play first channel
                 if (channels.length > 0) {
                     currentChannelIndex = 0;
-                    selectChannelByIndex(0, playlistType);
+                    setTimeout(() => {
+                        selectChannelByIndex(0, playlistType);
+                    }, 500);
                 }
                 
             } catch (error) {
@@ -697,6 +699,7 @@
             
             if (index >= 0 && index < channels.length) {
                 currentChannelIndex = index;
+                currentPlaylist = playlistType;
                 
                 // Update active channel in UI
                 const channelElements = document.querySelectorAll('.channel-item');
@@ -705,7 +708,9 @@
                         if (i === index) {
                             item.classList.add('active');
                             // Scroll into view
-                            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            setTimeout(() => {
+                                item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 100);
                         } else {
                             item.classList.remove('active');
                         }
@@ -822,7 +827,9 @@
                 
                 // Try alternative playback methods
                 if (playlistType === 'cignal') {
-                    tryAlternativePlayback(streamUrl, channelName);
+                    setTimeout(() => {
+                        tryAlternativePlayback(streamUrl, channelName);
+                    }, 1000);
                 } else {
                     showError(`Failed to load stream: ${error.message}`);
                 }
@@ -925,7 +932,7 @@
             }
         }
         
-        // Update channel list UI
+        // Update channel list UI - SIMPLIFIED VERSION
         function updateChannelList(playlistType) {
             const channelList = document.getElementById('channel-list');
             const channels = playlistType === 'converge' ? convergeChannels : cignalChannels;
@@ -969,52 +976,31 @@
                     </div>
                 `;
                 
-                // Fix: Use regular function instead of async for click handler
-                channelElement.addEventListener('click', () => {
-                    handleChannelClick(index, playlistType);
-                });
+                // SIMPLE CLICK HANDLER - FIXED
+                channelElement.onclick = () => {
+                    // Remove active class from all channels
+                    document.querySelectorAll('.channel-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked channel
+                    channelElement.classList.add('active');
+                    
+                    // Update current index and playlist
+                    currentChannelIndex = index;
+                    currentPlaylist = playlistType;
+                    
+                    // Load the channel
+                    loadStream(channel.url, channel.name, playlistType);
+                };
                 
                 channelList.appendChild(channelElement);
             });
             
-            // Auto-select first channel if none selected
-            if (currentChannelIndex < 0 && channelList.children.length > 0) {
-                currentChannelIndex = 0;
+            // Auto-select first channel
+            if (channelList.children.length > 0) {
                 const firstChannel = channelList.children[0];
                 firstChannel.classList.add('active');
-                
-                // Auto-play first channel
-                const firstChannelData = channels[0];
-                loadStream(firstChannelData.url, firstChannelData.name, playlistType);
-            }
-        }
-        
-        // Handle channel click
-        async function handleChannelClick(index, playlistType) {
-            // Remove active class from all channels
-            document.querySelectorAll('.channel-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Add active class to clicked channel
-            const clickedElement = document.querySelector(`.channel-item[data-index="${index}"]`);
-            if (clickedElement) {
-                clickedElement.classList.add('active');
-                clickedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            
-            currentChannelIndex = index;
-            currentPlaylist = playlistType;
-            
-            // Reinitialize player if needed
-            if (!player || player.isDestroyed()) {
-                await initPlayer();
-            }
-            
-            // Load the selected channel
-            const channels = playlistType === 'converge' ? convergeChannels : cignalChannels;
-            if (channels[index]) {
-                loadStream(channels[index].url, channels[index].name, playlistType);
             }
         }
         
@@ -1144,25 +1130,9 @@
                 changeChannel('prev');
             });
             
-            // Set up playlist buttons
-            document.getElementById('converge-btn').addEventListener('click', async () => {
-                const buttons = document.querySelectorAll('.playlist-btn');
-                buttons.forEach(btn => btn.classList.remove('active'));
-                document.getElementById('converge-btn').classList.add('active');
-                
-                currentPlaylist = 'converge';
-                
-                if (convergeChannels.length === 0) {
-                    await loadPlaylist('converge');
-                } else {
-                    updateChannelList('converge');
-                    updateStatus('Converge playlist loaded. Select a channel to play.');
-                }
-            });
-            
-            document.getElementById('cignal-btn').addEventListener('click', async () => {
-                const buttons = document.querySelectorAll('.playlist-btn');
-                buttons.forEach(btn => btn.classList.remove('active'));
+            // Set up playlist buttons - SIMPLIFIED
+            document.getElementById('cignal-btn').onclick = async () => {
+                document.getElementById('converge-btn').classList.remove('active');
                 document.getElementById('cignal-btn').classList.add('active');
                 
                 currentPlaylist = 'cignal';
@@ -1172,13 +1142,35 @@
                 } else {
                     updateChannelList('cignal');
                     updateStatus('Cignal playlist loaded. Select a channel to play.');
+                    // Auto-play first channel
+                    if (cignalChannels.length > 0) {
+                        selectChannelByIndex(0, 'cignal');
+                    }
                 }
-            });
+            };
             
-            // Initialize with Converge playlist
+            document.getElementById('converge-btn').onclick = async () => {
+                document.getElementById('cignal-btn').classList.remove('active');
+                document.getElementById('converge-btn').classList.add('active');
+                
+                currentPlaylist = 'converge';
+                
+                if (convergeChannels.length === 0) {
+                    await loadPlaylist('converge');
+                } else {
+                    updateChannelList('converge');
+                    updateStatus('Converge playlist loaded. Select a channel to play.');
+                    // Auto-play first channel
+                    if (convergeChannels.length > 0) {
+                        selectChannelByIndex(0, 'converge');
+                    }
+                }
+            };
+            
+            // Auto-load Cignal playlist on startup
             setTimeout(() => {
-                document.getElementById('converge-btn').click();
-            }, 1000);
+                document.getElementById('cignal-btn').click();
+            }, 500);
             
             // Handle keyboard shortcuts
             document.addEventListener('keydown', (e) => {
