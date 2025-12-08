@@ -193,6 +193,9 @@
             color: white;
             text-align: center;
             z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
         }
         
         .loader {
@@ -208,6 +211,16 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            display: none;
+            background: #f5576c;
+            color: white;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            text-align: center;
         }
         
         /* Mobile-specific styles */
@@ -246,6 +259,8 @@
         <div class="logo">IPTV Player</div>
         <div class="tagline">Converge & Cignal Channels</div>
     </header>
+    
+    <div class="error-message" id="error-message"></div>
     
     <div class="player-container">
         <div id="video-container">
@@ -298,8 +313,12 @@
                 }
             },
             cignal: {
-                clearKeys: {}
-                // Add ClearKey keys here if needed
+                // ClearKey configuration for Cignal
+                // Note: You need to add actual key IDs and keys here
+                clearKeys: {
+                    // Format: 'key-id-in-hex': 'key-in-hex'
+                    // Example: '1234567890abcdef1234567890abcdef': 'abcdef1234567890abcdef1234567890'
+                }
             }
         };
         
@@ -312,52 +331,63 @@
             
             // Check if browser supports Shaka
             if (!shaka.Player.isBrowserSupported()) {
-                console.error('Browser not supported!');
-                updateStatus('Browser not supported. Please use Chrome, Firefox, or Edge.');
+                showError('Browser not supported! Please use Chrome, Firefox, or Edge.');
                 return false;
             }
             
-            // Create Player instance
-            player = new shaka.Player(video);
-            
-            // Configure player for HLS support
-            player.configure({
-                drm: {
-                    servers: DRM_CONFIG.converge.servers
-                },
-                streaming: {
-                    bufferingGoal: 30,
-                    rebufferingGoal: 15,
-                    bufferBehind: 30,
-                    useNativeHlsOnSafari: false
-                },
-                manifest: {
-                    dash: {
-                        ignoreMinBufferTime: true
+            try {
+                // Create Player instance
+                player = new shaka.Player(video);
+                
+                // Configure player for HLS support
+                player.configure({
+                    drm: {
+                        servers: DRM_CONFIG.converge.servers
+                    },
+                    streaming: {
+                        bufferingGoal: 30,
+                        rebufferingGoal: 15,
+                        bufferBehind: 30,
+                        useNativeHlsOnSafari: false
+                    },
+                    manifest: {
+                        dash: {
+                            ignoreMinBufferTime: true
+                        }
                     }
-                }
-            });
-            
-            // Listen for error events
-            player.addEventListener('error', onPlayerError);
-            
-            // Listen for loading events
-            player.addEventListener('loading', () => {
-                showLoading(true, 'Loading stream...');
-            });
-            
-            player.addEventListener('loaded', () => {
-                showLoading(false);
-                updateStatus(`Now playing: ${getCurrentChannelName()}`);
-            });
-            
-            return true;
+                });
+                
+                // Listen for error events
+                player.addEventListener('error', onPlayerError);
+                
+                // Listen for loading events
+                player.addEventListener('loading', () => {
+                    showLoading(true, 'Loading stream...');
+                });
+                
+                player.addEventListener('loaded', () => {
+                    showLoading(false);
+                    updateStatus(`Now playing: ${getCurrentChannelName()}`);
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('Player initialization error:', error);
+                showError('Failed to initialize player: ' + error.message);
+                return false;
+            }
         }
         
         // Parse M3U playlist
-        async function parseM3UPlaylist(url) {
+        async function parseM3UPlaylist(url, playlistType) {
             try {
+                showLoading(true, `Loading ${playlistType} playlist...`);
+                
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const text = await response.text();
                 const lines = text.split('\n');
                 const channels = [];
@@ -370,8 +400,8 @@
                         // Parse channel info
                         const info = line.substring(8);
                         const commaIndex = info.indexOf(',');
-                        const attrs = info.substring(0, commaIndex);
-                        const name = info.substring(commaIndex + 1);
+                        const attrs = commaIndex > 0 ? info.substring(0, commaIndex) : '';
+                        const name = commaIndex > 0 ? info.substring(commaIndex + 1) : info;
                         
                         // Parse attributes
                         const attrPairs = attrs.split(' ');
@@ -384,24 +414,32 @@
                         });
                         
                         currentChannel = {
-                            name: name,
+                            name: name.trim(),
                             tvgId: attributes['tvg-id'] || '',
-                            tvgName: attributes['tvg-name'] || name,
+                            tvgName: attributes['tvg-name'] || name.trim(),
                             tvgLogo: attributes['tvg-logo'] || '',
                             groupTitle: attributes['group-title'] || 'General'
                         };
                     } else if (line && !line.startsWith('#') && currentChannel.name) {
                         // This is the stream URL
-                        currentChannel.url = line;
-                        channels.push({...currentChannel});
+                        currentChannel.url = line.trim();
+                        
+                        // Check if it's a valid URL
+                        if (currentChannel.url.startsWith('http')) {
+                            channels.push({...currentChannel});
+                        }
+                        
                         currentChannel = {};
                     }
                 }
                 
                 return channels;
             } catch (error) {
-                console.error('Error parsing playlist:', error);
+                console.error(`Error parsing ${playlistType} playlist:`, error);
+                showError(`Failed to load ${playlistType} playlist: ${error.message}`);
                 return [];
+            } finally {
+                showLoading(false);
             }
         }
         
@@ -410,15 +448,13 @@
             if (isLoadingPlaylist) return;
             
             isLoadingPlaylist = true;
-            showLoading(true, `Loading ${playlistType} playlist...`);
+            updateStatus(`Loading ${playlistType} playlist...`);
             
             try {
-                const channels = await parseM3UPlaylist(PLAYLIST_URLS[playlistType]);
+                const channels = await parseM3UPlaylist(PLAYLIST_URLS[playlistType], playlistType);
                 
                 if (channels.length === 0) {
                     updateStatus(`No channels found in ${playlistType} playlist`);
-                    showLoading(false);
-                    isLoadingPlaylist = false;
                     return;
                 }
                 
@@ -437,7 +473,6 @@
                 console.error('Error loading playlist:', error);
                 updateStatus(`Error loading playlist: ${error.message}`);
             } finally {
-                showLoading(false);
                 isLoadingPlaylist = false;
             }
         }
@@ -447,70 +482,136 @@
             try {
                 showLoading(true, `Loading ${channelName}...`);
                 
-                // Configure DRM based on playlist type
-                const config = {
-                    streaming: {
-                        bufferingGoal: 30
-                    }
-                };
+                // Clear previous error
+                hideError();
                 
+                // Configure DRM based on playlist type
                 if (playlistType === 'converge') {
-                    config.drm = {
-                        servers: DRM_CONFIG.converge.servers
-                    };
+                    player.configure({
+                        drm: {
+                            servers: DRM_CONFIG.converge.servers
+                        }
+                    });
                 } else if (playlistType === 'cignal') {
-                    config.drm = DRM_CONFIG.cignal;
+                    // Configure ClearKey for Cignal
+                    player.configure({
+                        drm: {
+                            clearKeys: DRM_CONFIG.cignal.clearKeys
+                        }
+                    });
                 }
                 
-                player.configure(config);
-                
-                // Load the stream
-                await player.load(streamUrl);
-                
-                currentPlaylist = playlistType;
-                updateStatus(`Now playing: ${channelName}`);
+                // Try to load with Shaka Player first
+                try {
+                    await player.load(streamUrl);
+                    currentPlaylist = playlistType;
+                    updateStatus(`Now playing: ${channelName}`);
+                } catch (shakaError) {
+                    console.log('Shaka Player failed, trying fallback...', shakaError);
+                    
+                    // If Shaka fails, try HLS.js or native playback
+                    tryAlternativePlayback(streamUrl, channelName, playlistType);
+                }
                 
             } catch (error) {
                 console.error('Error loading stream:', error);
-                
-                // Fallback to using video element directly for HLS
-                if (error.code === shaka.util.Error.Code.UNABLE_TO_GUESS_MANIFEST_TYPE) {
-                    updateStatus('Trying alternative playback method...');
-                    tryAlternativePlayback(streamUrl, channelName);
-                } else {
-                    updateStatus(`Error: ${error.message}`);
-                }
+                showError(`Failed to load stream: ${error.message}`);
             } finally {
                 showLoading(false);
             }
         }
         
-        // Alternative playback method for HLS
-        function tryAlternativePlayback(streamUrl, channelName) {
+        // Alternative playback method
+        function tryAlternativePlayback(streamUrl, channelName, playlistType) {
             const video = document.getElementById('video');
+            
+            // First, try to detach Shaka Player
+            if (player) {
+                try {
+                    player.detach();
+                    player = null;
+                } catch (e) {
+                    console.log('Error detaching player:', e);
+                }
+            }
+            
+            // Clear video source
+            video.src = '';
+            video.removeAttribute('src');
+            video.load();
             
             // Check if HLS.js is available
             if (typeof Hls !== 'undefined') {
                 if (Hls.isSupported()) {
-                    const hls = new Hls();
+                    const hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+                    
                     hls.loadSource(streamUrl);
                     hls.attachMedia(video);
+                    
                     hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play();
+                        video.play().catch(e => {
+                            console.log('Auto-play prevented:', e);
+                        });
                         updateStatus(`Now playing: ${channelName} (HLS.js)`);
                     });
+                    
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        console.error('HLS.js error:', data);
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    showError('Network error. Trying native playback...');
+                                    hls.destroy();
+                                    tryNativeHLS(streamUrl, channelName);
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    showError('Media error. Trying native playback...');
+                                    hls.destroy();
+                                    tryNativeHLS(streamUrl, channelName);
+                                    break;
+                                default:
+                                    hls.destroy();
+                                    showError('Playback error');
+                                    break;
+                            }
+                        }
+                    });
+                    
                     return;
                 }
             }
             
             // Try native HLS
-            if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            tryNativeHLS(streamUrl, channelName);
+        }
+        
+        // Try native HLS playback
+        function tryNativeHLS(streamUrl, channelName) {
+            const video = document.getElementById('video');
+            
+            if (video.canPlayType('application/vnd.apple.mpegurl') || 
+                video.canPlayType('application/x-mpegURL')) {
                 video.src = streamUrl;
                 video.load();
-                video.play();
-                updateStatus(`Now playing: ${channelName} (Native HLS)`);
+                
+                video.play().then(() => {
+                    updateStatus(`Now playing: ${channelName} (Native HLS)`);
+                }).catch(e => {
+                    console.log('Auto-play prevented:', e);
+                    updateStatus(`Loaded: ${channelName} - Tap to play`);
+                    showError('Auto-play blocked. Please tap the video to start playback.');
+                });
+                
+                video.addEventListener('error', (e) => {
+                    console.error('Native video error:', e);
+                    showError('Native playback failed');
+                });
             } else {
-                updateStatus('Your browser does not support HLS playback');
+                showError('Your browser does not support HLS playback');
             }
         }
         
@@ -520,6 +621,16 @@
             const channels = playlistType === 'converge' ? convergeChannels : cignalChannels;
             
             channelList.innerHTML = '';
+            
+            if (channels.length === 0) {
+                channelList.innerHTML = `
+                    <div class="channel-item" style="text-align: center; opacity: 0.7; justify-content: center;">
+                        No channels found in playlist
+                    </div>
+                `;
+                document.getElementById('channel-count').textContent = '0 channels';
+                return;
+            }
             
             // Update channel count
             document.getElementById('channel-count').textContent = `${channels.length} channels`;
@@ -544,7 +655,7 @@
                     </div>
                 `;
                 
-                channelElement.addEventListener('click', () => {
+                channelElement.addEventListener('click', async () => {
                     // Remove active class from all channels
                     document.querySelectorAll('.channel-item').forEach(item => {
                         item.classList.remove('active');
@@ -552,6 +663,11 @@
                     
                     // Add active class to clicked channel
                     channelElement.classList.add('active');
+                    
+                    // Reinitialize player if needed
+                    if (!player || player.isDestroyed()) {
+                        await initPlayer();
+                    }
                     
                     // Load the selected channel
                     loadStream(channel.url, channel.name, playlistType);
@@ -603,6 +719,21 @@
             loadingElement.style.display = show ? 'block' : 'none';
         }
         
+        // Show error message
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(hideError, 5000);
+        }
+        
+        // Hide error message
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+        
         // Get current channel name
         function getCurrentChannelName() {
             const activeChannel = document.querySelector('.channel-item.active');
@@ -616,7 +747,7 @@
         // Handle player errors
         function onPlayerError(event) {
             console.error('Player error:', event.detail);
-            updateStatus(`Error: ${event.detail.code} - ${event.detail.message}`);
+            showError(`Playback error: ${event.detail.code}`);
         }
         
         // Initialize when page loads
@@ -627,14 +758,10 @@
             document.head.appendChild(hlsScript);
             
             // Initialize player
-            const playerInitialized = await initPlayer();
-            
-            if (!playerInitialized) {
-                return;
-            }
+            await initPlayer();
             
             // Set up playlist buttons
-            document.getElementById('converge-btn').addEventListener('click', () => {
+            document.getElementById('converge-btn').addEventListener('click', async () => {
                 const buttons = document.querySelectorAll('.playlist-btn');
                 buttons.forEach(btn => btn.classList.remove('active'));
                 document.getElementById('converge-btn').classList.add('active');
@@ -642,14 +769,14 @@
                 currentPlaylist = 'converge';
                 
                 if (convergeChannels.length === 0) {
-                    loadPlaylist('converge');
+                    await loadPlaylist('converge');
                 } else {
                     updateChannelList('converge');
                     updateStatus('Converge playlist loaded. Select a channel to play.');
                 }
             });
             
-            document.getElementById('cignal-btn').addEventListener('click', () => {
+            document.getElementById('cignal-btn').addEventListener('click', async () => {
                 const buttons = document.querySelectorAll('.playlist-btn');
                 buttons.forEach(btn => btn.classList.remove('active'));
                 document.getElementById('cignal-btn').classList.add('active');
@@ -657,7 +784,7 @@
                 currentPlaylist = 'cignal';
                 
                 if (cignalChannels.length === 0) {
-                    loadPlaylist('cignal');
+                    await loadPlaylist('cignal');
                 } else {
                     updateChannelList('cignal');
                     updateStatus('Cignal playlist loaded. Select a channel to play.');
@@ -665,7 +792,9 @@
             });
             
             // Initialize with Converge playlist
-            document.getElementById('converge-btn').click();
+            setTimeout(() => {
+                document.getElementById('converge-btn').click();
+            }, 1000);
             
             // Handle fullscreen changes
             document.addEventListener('fullscreenchange', () => {
@@ -675,19 +804,6 @@
                 } else {
                     video.style.objectFit = 'contain';
                 }
-            });
-            
-            // Handle orientation changes
-            window.addEventListener('orientationchange', () => {
-                setTimeout(() => {
-                    if (player && player.isBuffering()) {
-                        player.configure({
-                            streaming: {
-                                rebufferingGoal: 10
-                            }
-                        });
-                    }
-                }, 300);
             });
         });
         
@@ -699,8 +815,18 @@
                 video.pause();
             } else if (currentPlaylist) {
                 // Resume when tab is visible
-                video.play().catch(e => console.log('Auto-play prevented'));
+                video.play().catch(e => console.log('Auto-play prevented:', e));
             }
+        });
+        
+        // Handle offline/online events
+        window.addEventListener('offline', () => {
+            showError('You are offline. Please check your internet connection.');
+        });
+        
+        window.addEventListener('online', () => {
+            hideError();
+            updateStatus('Connection restored.');
         });
     </script>
 </body>
