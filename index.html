@@ -606,50 +606,6 @@
         .fullscreen #controls-container {
             display: none;
         }
-        
-        /* Cignal Content Container */
-        #cignal-content-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a1a1a;
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-        }
-        
-        #cignal-header {
-            padding: 12px;
-            background: #2d2d2d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #444;
-        }
-        
-        #cignal-header h3 {
-            font-size: 16px;
-            color: #FF6B35;
-        }
-        
-        #close-cignal {
-            background: #ff4444;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        #cignal-frame {
-            flex: 1;
-            width: 100%;
-            border: none;
-            background: white;
-        }
     </style>
 </head>
 <body>
@@ -754,15 +710,6 @@
         </div>
         <input type="text" id="channel-search" placeholder="Search channels...">
         <div id="channels-list"></div>
-    </div>
-    
-    <!-- Cignal Content Container -->
-    <div id="cignal-content-container">
-        <div id="cignal-header">
-            <h3>Cignal TV - Powered by ReynielTV</h3>
-            <button id="close-cignal">Close</button>
-        </div>
-        <iframe id="cignal-frame" src="about:blank"></iframe>
     </div>
     
     <!-- Settings Panel -->
@@ -1326,24 +1273,11 @@
                 this.playChannel(prevChannel.id);
             }
             
-            // NEW FUNCTION: Open Cignal website in overlay
+            // NEW FUNCTION: Open Cignal website in browser
             openCignalWebsite() {
-                const cignalContainer = document.getElementById('cignal-content-container');
-                const cignalFrame = document.getElementById('cignal-frame');
-                
-                cignalFrame.src = 'https://reynielcgnaltv.pages.dev/';
-                cignalContainer.style.display = 'flex';
-                
-                this.showToast('Loading Cignal TV...', 'info');
-            }
-            
-            // NEW FUNCTION: Close Cignal website overlay
-            closeCignalWebsite() {
-                const cignalContainer = document.getElementById('cignal-content-container');
-                const cignalFrame = document.getElementById('cignal-frame');
-                
-                cignalContainer.style.display = 'none';
-                cignalFrame.src = 'about:blank';
+                this.showToast('Opening Cignal TV...', 'info');
+                // Open in same tab
+                window.location.href = 'https://reynielcgnaltv.pages.dev/';
             }
             
             // NEW FUNCTION: Refresh browser
@@ -1359,7 +1293,7 @@
                 document.getElementById('prev-channel').addEventListener('click', () => this.prevChannel());
                 document.getElementById('next-channel').addEventListener('click', () => this.nextChannel());
                 
-                // MODIFIED: Cignal button now opens website in overlay
+                // MODIFIED: Cignal button now opens website in browser (same tab)
                 document.getElementById('cignal-btn').addEventListener('click', () => this.openCignalWebsite());
                 
                 // MODIFIED: Converge button now refreshes browser
@@ -1372,9 +1306,6 @@
                 // Channel list
                 document.getElementById('channel-list-btn').addEventListener('click', () => this.showChannelList());
                 document.getElementById('close-channels').addEventListener('click', () => this.hideChannelList());
-                
-                // Cignal overlay close button
-                document.getElementById('close-cignal').addEventListener('click', () => this.closeCignalWebsite());
                 
                 // Search
                 document.getElementById('channel-search').addEventListener('input', (e) => this.filterChannels(e.target.value));
