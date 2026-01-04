@@ -331,6 +331,19 @@
             font-size: 12px;
         }
         
+        /* DRM Indicator */
+        .drm-indicator {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(255, 107, 53, 0.9);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        
         /* Bottom actions */
         .bottom-actions {
             display: flex;
@@ -593,6 +606,20 @@
             z-index: 10;
         }
         
+        /* DRM Status */
+        .drm-status {
+            position: absolute;
+            bottom: 50px;
+            right: 10px;
+            background: rgba(255, 107, 53, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 10;
+        }
+        
         /* Fullscreen mode */
         .fullscreen #video-container {
             height: 100vh;
@@ -633,6 +660,10 @@
                 <div class="stats-row">
                     <span class="stats-label">Resolution:</span>
                     <span class="stats-value" id="current-resolution">N/A</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">DRM:</span>
+                    <span class="stats-value" id="drm-status">None</span>
                 </div>
             </div>
             
@@ -737,6 +768,19 @@
                 <i class="fas fa-sync-alt"></i> Reload Playlist
             </button>
         </div>
+        
+        <!-- DRM Configuration -->
+        <div class="settings-option">
+            <h4 style="margin-bottom: 10px;">DRM Settings</h4>
+            <div style="background: #3c4043; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <i class="fas fa-shield-alt" style="color: #FF6B35; margin-right: 8px;"></i>
+                    <span style="font-weight: bold;">Widevine License Server:</span>
+                </div>
+                <input type="text" id="widevine-server" value="https://ottmdrm.comclark.com/widevine/" 
+                       style="width: 100%; padding: 8px; background: #2d2d2d; border: 1px solid #444; border-radius: 5px; color: white; font-size: 12px;">
+            </div>
+        </div>
     </div>
     
     <!-- Toast Container -->
@@ -745,7 +789,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
     
     <script>
-        // WORKING IPTV App - Using the EXACT parsing method from reference
+        // WORKING IPTV App - With Widevine DRM Support
         class WorkingIPTVApp {
             constructor() {
                 this.channels = [];
@@ -754,6 +798,9 @@
                 this.favorites = JSON.parse(localStorage.getItem('iptv_favorites') || '[]');
                 this.categories = {};
                 this.currentCategory = 'all';
+                
+                // Widevine DRM Configuration
+                this.WIDEVINE_LICENSE_SERVER = localStorage.getItem('widevine_server') || 'https://ottmdrm.comclark.com/widevine/';
                 
                 // EXACT SAME AUTO-LOAD CONFIG as reference
                 this.AUTO_LOAD_CONFIG = {
@@ -774,6 +821,9 @@
                 this.setupEventListeners();
                 this.updateFavoritesUI();
                 this.initAutoLoad(); // Auto-load on startup
+                
+                // Update DRM server input
+                document.getElementById('widevine-server').value = this.WIDEVINE_LICENSE_SERVER;
             }
             
             initializePlayer() {
@@ -781,6 +831,7 @@
                 if (shaka.Player.isBrowserSupported()) {
                     this.player = new shaka.Player(document.getElementById('video'));
                     
+                    // Configure default settings
                     this.player.configure({
                         streaming: {
                             bufferingGoal: 30,
@@ -788,6 +839,7 @@
                         }
                     });
                     
+                    // Add event listeners
                     this.player.addEventListener('loading', () => {
                         this.showLoading(true);
                         this.updateChannelStatus('Loading...');
@@ -906,7 +958,7 @@
                 }, this.AUTO_LOAD_CONFIG.delay);
             }
             
-            // EXACT M3U PARSING from reference
+            // M3U PARSING with Widevine DRM support
             parseM3U(data) {
                 const lines = data.split('\n');
                 const channels = [];
@@ -933,6 +985,15 @@
                             if (param.includes('tvg-logo=')) {
                                 currentChannel.logo = param.split('=')[1]?.replace(/"/g, '');
                             }
+                            // Add Widevine DRM detection
+                            if (param.includes('tvg-license=')) {
+                                currentChannel.licenseKey = param.split('=')[1]?.replace(/"/g, '');
+                                currentChannel.licenseType = 'com.widevine.alpha';
+                            }
+                            if (param.includes('license=')) {
+                                currentChannel.licenseKey = param.split('=')[1]?.replace(/"/g, '');
+                                currentChannel.licenseType = 'com.widevine.alpha';
+                            }
                         });
                     } 
                     else if (trimmedLine.startsWith('#EXTGRP:')) {
@@ -949,10 +1010,30 @@
                             this.parseLicenseKeyData(currentChannel, keyData);
                         }
                     }
+                    else if (trimmedLine.startsWith('#EXTVLCOPT:')) {
+                        // Handle VLC options for DRM
+                        const opt = trimmedLine.substring(11);
+                        if (opt.includes('--http-header=')) {
+                            const headerValue = opt.split('=')[1]?.replace(/"/g, '');
+                            if (headerValue && headerValue.includes('X-AxDRM-Message')) {
+                                currentChannel.licenseKey = headerValue;
+                                currentChannel.licenseType = 'com.widevine.alpha';
+                            }
+                        }
+                    }
                     else if (trimmedLine && !trimmedLine.startsWith('#')) {
                         currentChannel.url = trimmedLine;
                         if (!currentChannel.group && groupTitle) {
                             currentChannel.group = groupTitle;
+                        }
+                        
+                        // Auto-detect DRM from URL
+                        if (!currentChannel.licenseType) {
+                            if (currentChannel.url.includes('.mpd') || 
+                                currentChannel.url.includes('dash') ||
+                                currentChannel.url.includes('widevine')) {
+                                currentChannel.licenseType = 'com.widevine.alpha';
+                            }
                         }
                         
                         channels.push({
@@ -984,12 +1065,17 @@
                 }
                 else if (keyData.includes('http://') || keyData.includes('https://')) {
                     channel.licenseKey = keyData.trim();
+                    // Auto-detect Widevine
+                    if (keyData.includes('widevine')) {
+                        channel.licenseType = 'com.widevine.alpha';
+                    }
                 } 
                 else {
                     const keyParts = keyData.split(':');
                     if (keyParts.length === 2 && keyParts[0].trim() && keyParts[1].trim()) {
                         channel.k1 = keyParts[0].trim();
                         channel.k2 = keyParts[1].trim();
+                        channel.licenseType = 'org.w3.clearkey';
                     }
                 }
             }
@@ -1157,6 +1243,7 @@
                 channelsToShow.forEach(channel => {
                     const isFavorite = this.favorites.includes(channel.id);
                     const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
+                    const hasDRM = channel.licenseType === 'com.widevine.alpha';
                     
                     const card = document.createElement('div');
                     card.className = 'channel-card';
@@ -1178,6 +1265,7 @@
                         <div class="channel-name">${channel.name}</div>
                         <div class="channel-group">${channel.group || 'General'}</div>
                         ${isFavorite ? '<i class="fas fa-star channel-fav-icon"></i>' : ''}
+                        ${hasDRM ? '<div class="drm-indicator">DRM</div>' : ''}
                     `;
                     
                     card.addEventListener('click', () => this.playChannel(channel.id));
@@ -1195,7 +1283,7 @@
                 try {
                     this.showLoading(true);
                     
-                    // Configure DRM if available
+                    // Configure DRM based on channel type
                     const config = {
                         drm: {},
                         streaming: {
@@ -1204,14 +1292,39 @@
                         }
                     };
                     
-                    if (channel.licenseType === 'org.w3.clearkey' && channel.k1 && channel.k2) {
+                    // Configure Widevine DRM
+                    if (channel.licenseType === 'com.widevine.alpha') {
+                        config.drm.servers = {
+                            'com.widevine.alpha': this.WIDEVINE_LICENSE_SERVER
+                        };
+                        
+                        // Advanced Widevine settings
+                        config.drm.advanced = {
+                            'com.widevine.alpha': {
+                                videoRobustness: 'SW_SECURE_CRYPTO',
+                                audioRobustness: 'SW_SECURE_CRYPTO',
+                                persistentState: 'optional',
+                                distinctiveIdentifier: 'optional',
+                                sessionType: 'temporary'
+                            }
+                        };
+                        
+                        console.log('Configuring Widevine DRM with server:', this.WIDEVINE_LICENSE_SERVER);
+                        this.updateDRMStatus('Widevine DRM Active');
+                    }
+                    // Configure ClearKey DRM
+                    else if (channel.licenseType === 'org.w3.clearkey' && channel.k1 && channel.k2) {
                         config.drm.clearKeys = { [channel.k1]: channel.k2 };
-                    } else if (channel.licenseType && channel.licenseKey) {
-                        config.drm.servers = { [channel.licenseType]: channel.licenseKey };
+                        this.updateDRMStatus('ClearKey DRM Active');
+                    }
+                    // No DRM
+                    else {
+                        this.updateDRMStatus('No DRM');
                     }
                     
                     this.player.configure(config);
                     
+                    // Load and play the channel
                     await this.player.load(channel.url);
                     
                     this.updateChannelInfo(channel.name);
@@ -1219,12 +1332,38 @@
                     this.updateFavoriteButton();
                     this.updateChannelsGrid();
                     
-                    this.showToast(`Playing: ${channel.name}`, 'success');
+                    this.showToast(`Playing: ${channel.name}${channel.licenseType ? ' (DRM Protected)' : ''}`, 'success');
                     
                 } catch (error) {
                     console.error('Error playing channel:', error);
-                    this.showError('Error playing channel');
-                    this.updateChannelStatus('Error');
+                    
+                    // Try fallback if DRM fails
+                    if (error.code === 6003 || error.code === 6016) { // DRM errors
+                        this.showToast('DRM error, trying without DRM...', 'warning');
+                        try {
+                            this.player.configure({
+                                drm: {},
+                                streaming: {
+                                    bufferingGoal: 30,
+                                    rebufferingGoal: 2
+                                }
+                            });
+                            
+                            await this.player.load(channel.url);
+                            this.showToast('Playing without DRM', 'success');
+                            
+                            this.updateChannelInfo(channel.name);
+                            this.updateChannelNumber(channelIndex + 1);
+                            this.updateFavoriteButton();
+                            this.updateChannelsGrid();
+                        } catch (secondError) {
+                            this.showError('Cannot play this DRM-protected channel');
+                            this.updateChannelStatus('DRM Error');
+                        }
+                    } else {
+                        this.showError('Error playing channel');
+                        this.updateChannelStatus('Error');
+                    }
                 } finally {
                     this.showLoading(false);
                 }
@@ -1273,14 +1412,11 @@
                 this.playChannel(prevChannel.id);
             }
             
-            // NEW FUNCTION: Open Cignal website in browser
             openCignalWebsite() {
                 this.showToast('Opening Cignal TV...', 'info');
-                // Open in same tab
                 window.location.href = 'https://reynielcgnaltv.pages.dev/';
             }
             
-            // NEW FUNCTION: Refresh browser
             refreshBrowser() {
                 this.showToast('Refreshing application...', 'info');
                 setTimeout(() => {
@@ -1293,13 +1429,13 @@
                 document.getElementById('prev-channel').addEventListener('click', () => this.prevChannel());
                 document.getElementById('next-channel').addEventListener('click', () => this.nextChannel());
                 
-                // MODIFIED: Cignal button now opens website in browser (same tab)
+                // Cignal button opens website
                 document.getElementById('cignal-btn').addEventListener('click', () => this.openCignalWebsite());
                 
-                // MODIFIED: Converge button now refreshes browser
+                // Converge button refreshes browser
                 document.getElementById('converge-btn').addEventListener('click', () => this.refreshBrowser());
                 
-                // Settings presets (kept for backward compatibility)
+                // Settings presets
                 document.getElementById('load-cignal-preset').addEventListener('click', () => this.loadProviderPreset('cignal'));
                 document.getElementById('load-converge-preset').addEventListener('click', () => this.loadProviderPreset('converge'));
                 
@@ -1327,6 +1463,13 @@
                 document.querySelectorAll('.category-tab').forEach(tab => {
                     tab.addEventListener('click', () => this.switchCategory(tab.dataset.category));
                 });
+                
+                // Widevine server configuration
+                document.getElementById('widevine-server').addEventListener('change', (e) => {
+                    this.WIDEVINE_LICENSE_SERVER = e.target.value;
+                    localStorage.setItem('widevine_server', e.target.value);
+                    this.showToast('Widevine server updated', 'success');
+                });
             }
             
             showChannelList() {
@@ -1342,6 +1485,7 @@
                 this.channels.forEach(channel => {
                     const isFavorite = this.favorites.includes(channel.id);
                     const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
+                    const hasDRM = channel.licenseType === 'com.widevine.alpha';
                     
                     const item = document.createElement('div');
                     item.className = 'channel-item';
@@ -1361,6 +1505,7 @@
                             <div style="font-size: 11px; color: #aaa;">${channel.group || 'General'}</div>
                         </div>
                         ${isFavorite ? '<i class="fas fa-star" style="color: #ff6b35; margin-left: 8px;"></i>' : ''}
+                        ${hasDRM ? '<span style="background: #FF6B35; color: white; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-left: 8px;">DRM</span>' : ''}
                     `;
                     
                     item.addEventListener('click', () => {
@@ -1415,6 +1560,10 @@
                 document.getElementById('channel-number').textContent = `CH ${number}`;
             }
             
+            updateDRMStatus(status) {
+                document.getElementById('drm-status').textContent = status;
+            }
+            
             updateFavoriteButton() {
                 const favoriteBtn = document.getElementById('favorite-btn');
                 const channelId = this.channels[this.currentChannelIndex]?.id;
@@ -1467,4 +1616,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
