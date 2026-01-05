@@ -331,19 +331,6 @@
             font-size: 12px;
         }
         
-        /* DRM Indicator */
-        .drm-indicator {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            background: rgba(255, 107, 53, 0.9);
-            color: white;
-            padding: 2px 5px;
-            border-radius: 4px;
-            font-size: 8px;
-            font-weight: bold;
-        }
-        
         /* Bottom actions */
         .bottom-actions {
             display: flex;
@@ -606,20 +593,6 @@
             z-index: 10;
         }
         
-        /* DRM Status */
-        .drm-status {
-            position: absolute;
-            bottom: 50px;
-            right: 10px;
-            background: rgba(255, 107, 53, 0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: bold;
-            z-index: 10;
-        }
-        
         /* Fullscreen mode */
         .fullscreen #video-container {
             height: 100vh;
@@ -632,6 +605,28 @@
         
         .fullscreen #controls-container {
             display: none;
+        }
+        
+        /* NEW: Direct M3U input field */
+        .m3u-input-container {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .m3u-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: white;
+        }
+        
+        .provider-preset-btn.direct-m3u {
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
         }
     </style>
 </head>
@@ -661,10 +656,6 @@
                     <span class="stats-label">Resolution:</span>
                     <span class="stats-value" id="current-resolution">N/A</span>
                 </div>
-                <div class="stats-row">
-                    <span class="stats-label">DRM:</span>
-                    <span class="stats-value" id="drm-status">None</span>
-                </div>
             </div>
             
             <button id="maximize-btn">
@@ -692,10 +683,10 @@
             
             <!-- Provider Buttons - TOP ROW (NASA TAAS NA!) -->
             <div id="provider-buttons">
-                <button class="provider-btn cignal" id="cignal-btn">
-                    <i class="fas fa-satellite-dish"></i> CIGNAL
+                <button class="provider-btn cignal" id="load-m3u-btn">
+                    <i class="fas fa-file-alt"></i> LOAD YOUR M3U
                 </button>
-                <button class="provider-btn converge" id="converge-btn">
+                <button class="provider-btn converge" id="refresh-btn">
                     <i class="fas fa-redo"></i> REFRESH
                 </button>
             </div>
@@ -719,6 +710,13 @@
             <!-- Channels Grid -->
             <div id="channels-grid">
                 <!-- Channels will be loaded here -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888; font-size: 12px;">
+                    <i class="fas fa-tv" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
+                    <p>No channels loaded</p>
+                    <button id="load-demo-btn" style="margin-top: 15px; padding: 10px 20px; background: #61dafb; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                        <i class="fas fa-play-circle"></i> Click "LOAD YOUR M3U" above
+                    </button>
+                </div>
             </div>
             
             <!-- Bottom Actions -->
@@ -752,6 +750,15 @@
             </button>
         </div>
         
+        <!-- NEW: Direct M3U Input -->
+        <div class="m3u-input-container">
+            <h4 style="margin-bottom: 10px;">Load M3U Playlist</h4>
+            <textarea id="m3u-textarea" class="m3u-input" rows="8" placeholder="Paste your M3U content here..."></textarea>
+            <button class="provider-preset-btn direct-m3u" id="load-direct-m3u-btn">
+                <i class="fas fa-upload"></i> Load Pasted M3U
+            </button>
+        </div>
+        
         <!-- Provider Presets -->
         <div class="settings-option">
             <h4 style="margin-bottom: 10px;">Quick Load Presets</h4>
@@ -763,23 +770,17 @@
             </button>
         </div>
         
+        <!-- Demo Channels -->
+        <div class="settings-option">
+            <button class="provider-preset-btn" id="load-demo-channels-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-play-circle"></i> Load Demo Channels
+            </button>
+        </div>
+        
         <div class="settings-option">
             <button class="action-btn" id="reload-playlist-btn" style="width: 100%; margin-top: 10px; font-size: 14px; padding: 12px;">
                 <i class="fas fa-sync-alt"></i> Reload Playlist
             </button>
-        </div>
-        
-        <!-- DRM Configuration -->
-        <div class="settings-option">
-            <h4 style="margin-bottom: 10px;">DRM Settings</h4>
-            <div style="background: #3c4043; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                    <i class="fas fa-shield-alt" style="color: #FF6B35; margin-right: 8px;"></i>
-                    <span style="font-weight: bold;">Widevine License Server:</span>
-                </div>
-                <input type="text" id="widevine-server" value="https://ottmdrm.comclark.com/widevine/" 
-                       style="width: 100%; padding: 8px; background: #2d2d2d; border: 1px solid #444; border-radius: 5px; color: white; font-size: 12px;">
-            </div>
         </div>
     </div>
     
@@ -789,879 +790,718 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
     
     <script>
-        // WORKING IPTV App - With Better Debug and Error Handling
-class WorkingIPTVApp {
-    constructor() {
-        this.channels = [];
-        this.currentChannelIndex = 0;
-        this.player = null;
-        this.favorites = JSON.parse(localStorage.getItem('iptv_favorites') || '[]');
-        this.categories = {};
-        this.currentCategory = 'all';
-        
-        // Widevine DRM Configuration
-        this.WIDEVINE_LICENSE_SERVER = localStorage.getItem('widevine_server') || 'https://ottmdrm.comclark.com/widevine/';
-        
-        // EXACT SAME AUTO-LOAD CONFIG as reference
-        this.AUTO_LOAD_CONFIG = {
-            enabled: true,
-            delay: 1000,
-            playlistUrls: [
-                "https://reiyhbit.github.io/iptv/latestconverge.m3u"
-            ],
-            playFirstChannel: true,
-            maxRetries: 3
-        };
-        
-        this.initializeApp();
-    }
-    
-    initializeApp() {
-        this.initializePlayer();
-        this.setupEventListeners();
-        this.updateFavoritesUI();
-        this.initAutoLoad(); // Auto-load on startup
-        
-        // Update DRM server input
-        document.getElementById('widevine-server').value = this.WIDEVINE_LICENSE_SERVER;
-    }
-    
-    initializePlayer() {
-        shaka.polyfill.installAll();
-        if (shaka.Player.isBrowserSupported()) {
-            this.player = new shaka.Player(document.getElementById('video'));
+        // WORKING IPTV App - WITH YOUR M3U PLAYLIST SUPPORT
+        class WorkingIPTVApp {
+            constructor() {
+                this.channels = [];
+                this.currentChannelIndex = 0;
+                this.player = null;
+                this.favorites = JSON.parse(localStorage.getItem('iptv_favorites') || '[]');
+                this.categories = {};
+                this.currentCategory = 'all';
+                
+                // YOUR ACTUAL M3U PLAYLIST CONTENT
+                this.YOUR_M3U_CONTENT = `#EXTM3U
+#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
+#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
+#EXTINF:-1, Channel 1065
+http://136.158.97.2:6610/001/2/ch00000090990000001065/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAosKg8aLji3LHWqHUI%2FwQyJsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001085&contentid=ch00000000000000001085&videoid=ch00000090990000001065&recommendtype=0&userid=1368249806492&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=NJY3IWFAY6XXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20448820260101155236346387&ispcode=55
+
+#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
+#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
+#EXTINF:-1, Channel 1075
+http://136.158.97.2:6610/001/2/ch00000090990000001075/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAqJxLC59eO5kyq497fsAC7QsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001134&contentid=ch00000000000000001134&videoid=ch00000090990000001075&recommendtype=0&userid=1265632122474&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=H3ED17F8SJXXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20447020260101155236141564&ispcode=55
+
+#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
+#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
+#EXTINF:-1, Channel 1077
+http://136.239.158.30:6610/001/2/ch00000090990000001077/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMArHUpvQtyXgWxpVCozt4hcgsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001136&contentid=ch00000000000000001136&videoid=ch00000090990000001077&recommendtype=0&userid=1058297419636&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=B8CE333QUH6XXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20447420260101155236077598&ispcode=55
+
+#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
+#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
+#EXTINF:-1, Channel 1078
+http://136.239.158.18:6610/001/2/ch00000090990000001078/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAq9SZLE5HgafIcQ2VcLQB9EsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001137&contentid=ch00000000000000001137&videoid=ch00000090990000001078&recommendtype=0&userid=1960500443734&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=8WK79ZSBXVGXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20447120260101155236008695&ispcode=55
+
+#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
+#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
+#EXTINF:-1, Channel 1079
+http://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAoglCgy7TAZamPXsCV8PgebsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001138&contentid=ch00000000000000001138&videoid=ch00000090990000001079&recommendtype=0&userid=1022847749017&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=LZTWKL0XP7XXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20445920260101155236183812&ispcode=55`;
+
+                this.initializeApp();
+            }
             
-            // Configure default settings
-            this.player.configure({
-                streaming: {
-                    bufferingGoal: 30,
-                    rebufferingGoal: 2
+            initializeApp() {
+                this.initializePlayer();
+                this.setupEventListeners();
+                this.updateFavoritesUI();
+            }
+            
+            initializePlayer() {
+                shaka.polyfill.installAll();
+                if (shaka.Player.isBrowserSupported()) {
+                    this.player = new shaka.Player(document.getElementById('video'));
+                    
+                    this.player.configure({
+                        streaming: {
+                            bufferingGoal: 30,
+                            rebufferingGoal: 2
+                        }
+                    });
+                    
+                    this.player.addEventListener('loading', () => {
+                        this.showLoading(true);
+                        this.updateChannelStatus('Loading...');
+                    });
+                    
+                    this.player.addEventListener('loaded', () => {
+                        this.showLoading(false);
+                        this.updateChannelStatus('Playing');
+                        this.showStatsPanel(true);
+                    });
+                    
+                    this.player.addEventListener('error', (error) => {
+                        this.showLoading(false);
+                        this.updateChannelStatus('Error');
+                        this.showError(`Error: ${error.code}`);
+                        console.error('Shaka Player error:', error);
+                    });
+                    
+                } else {
+                    this.showError('Your browser does not support Shaka Player.');
                 }
-            });
+            }
             
-            // Add event listeners for debugging
-            this.player.addEventListener('loading', () => {
-                this.showLoading(true);
-                this.updateChannelStatus('Loading...');
-                console.log('Player loading...');
-            });
-            
-            this.player.addEventListener('loaded', () => {
-                this.showLoading(false);
-                this.updateChannelStatus('Playing');
-                this.showStatsPanel(true);
-                console.log('Player loaded successfully');
-            });
-            
-            this.player.addEventListener('error', (error) => {
-                this.showLoading(false);
-                console.error('Player error:', error);
-                this.updateChannelStatus('Error');
-                this.showError(`Error: ${error.code} - ${error.message || 'Unknown error'}`);
-            });
-            
-            this.player.addEventListener('buffering', (event) => {
-                console.log('Buffering:', event.buffering);
-            });
-            
-        } else {
-            this.showError('Your browser does not support Shaka Player.');
-        }
-    }
-    
-    // EXACT AUTO-LOAD FUNCTION from reference
-    async initAutoLoad() {
-        if (!this.AUTO_LOAD_CONFIG.enabled) return;
-        
-        console.log(`Auto-loading playlist in ${this.AUTO_LOAD_CONFIG.delay}ms...`);
-        
-        setTimeout(async () => {
-            try {
-                this.showToast('Auto-loading playlist...', 'info', 2000);
-                this.showLoading(true);
+            // FIXED PARSING FOR YOUR M3U FORMAT
+            parseM3U(data) {
+                const lines = data.split('\n');
+                const channels = [];
+                let currentChannel = {};
                 
-                let m3uData;
-                let successUrl = null;
-                let retryCount = 0;
+                console.log('Parsing M3U with', lines.length, 'lines');
                 
-                // Try all URLs until one works
-                for (const playlistUrl of this.AUTO_LOAD_CONFIG.playlistUrls) {
-                    try {
-                        console.log(`Trying playlist URL: ${playlistUrl}`);
-                        const response = await fetch(playlistUrl, {
-                            method: 'GET',
-                            mode: 'cors',
-                            headers: {
-                                'Accept': 'application/x-mpegurl, text/plain, */*',
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                            }
-                        });
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    
+                    if (line.startsWith('#EXTM3U')) {
+                        continue;
+                    }
+                    
+                    // Check for KODIPROP lines (license info)
+                    if (line.startsWith('#KODIPROP:')) {
+                        const prop = line.substring(10);
+                        if (prop.startsWith('inputstream.adaptive.license_type=')) {
+                            currentChannel.licenseType = prop.split('=')[1];
+                        } 
+                        else if (prop.startsWith('inputstream.adaptive.license_key=')) {
+                            currentChannel.licenseKey = prop.split('=')[1];
+                        }
+                        continue;
+                    }
+                    
+                    // Check for EXTINF line
+                    if (line.startsWith('#EXTINF:')) {
+                        // Extract channel name
+                        const match = line.match(/^#EXTINF:.*?,(.+)$/);
+                        if (match) {
+                            currentChannel.name = match[1].trim();
+                        }
+                        continue;
+                    }
+                    
+                    // Check for URL line
+                    if (line.startsWith('http') && line.includes('manifest.mpd')) {
+                        currentChannel.url = line;
+                        currentChannel.group = 'DASH Channels';
                         
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}`);
+                        // Add channel to list
+                        if (currentChannel.name && currentChannel.url) {
+                            channels.push({
+                                ...currentChannel,
+                                id: channels.length,
+                                logo: ''
+                            });
+                            console.log('Added channel:', currentChannel.name);
                         }
                         
-                        m3uData = await response.text();
-                        
-                        // Check if we got valid M3U data
-                        if (m3uData && m3uData.includes('#EXTM3U')) {
-                            successUrl = playlistUrl;
-                            console.log(`Successfully loaded from: ${playlistUrl}`);
-                            break;
-                        } else {
-                            throw new Error('Invalid M3U format');
-                        }
-                        
-                    } catch (urlError) {
-                        console.warn(`Failed to load from ${playlistUrl}:`, urlError);
-                        retryCount++;
-                        
-                        if (retryCount >= this.AUTO_LOAD_CONFIG.maxRetries) {
-                            throw new Error('All playlist URLs failed');
-                        }
+                        // Reset for next channel
+                        currentChannel = {};
                         continue;
                     }
                 }
                 
-                if (!m3uData) {
-                    throw new Error('No working playlist URLs found');
+                console.log('Parsed', channels.length, 'channels');
+                return channels;
+            }
+            
+            // NEW: Load YOUR M3U playlist
+            loadYourM3U() {
+                this.showToast('Loading your M3U playlist...', 'info');
+                this.showLoading(true);
+                
+                try {
+                    // Use the M3U content you provided
+                    this.channels = this.parseM3U(this.YOUR_M3U_CONTENT);
+                    
+                    if (this.channels.length === 0) {
+                        this.showError('No channels found in M3U. Using demo channels.');
+                        this.loadDemoChannels();
+                        return;
+                    }
+                    
+                    this.extractCategories();
+                    this.updateChannelsGrid();
+                    
+                    // Auto-play first channel
+                    setTimeout(() => {
+                        if (this.channels.length > 0) {
+                            this.playChannel(0);
+                            this.showToast(`Loaded ${this.channels.length} channels from your M3U`, 'success');
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Error loading M3U:', error);
+                    this.showError('Error parsing M3U. Using demo channels.');
+                    this.loadDemoChannels();
+                    
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            // NEW: Load from textarea
+            loadDirectM3U() {
+                const m3uText = document.getElementById('m3u-textarea').value;
+                if (!m3uText || !m3uText.includes('#EXTM3U')) {
+                    this.showError('Please paste valid M3U content');
+                    return;
                 }
                 
-                this.channels = this.parseM3U(m3uData);
-                console.log(`Parsed ${this.channels.length} channels`);
+                this.showToast('Loading pasted M3U...', 'info');
+                this.showLoading(true);
                 
-                if (this.channels.length === 0) {
-                    // If no channels found, create a sample channel
-                    this.channels = [{
-                        name: 'Sample Stream (Auto-loaded)',
+                try {
+                    this.channels = this.parseM3U(m3uText);
+                    
+                    if (this.channels.length === 0) {
+                        this.showError('No valid channels found. Check your M3U format.');
+                        return;
+                    }
+                    
+                    this.extractCategories();
+                    this.updateChannelsGrid();
+                    this.hideSettings();
+                    
+                    // Auto-play first channel
+                    setTimeout(() => {
+                        if (this.channels.length > 0) {
+                            this.playChannel(0);
+                            this.showToast(`Loaded ${this.channels.length} channels`, 'success');
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Error loading M3U:', error);
+                    this.showError('Error parsing M3U: ' + error.message);
+                    
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            loadDemoChannels() {
+                this.channels = [
+                    {
+                        id: 0,
+                        name: 'Tears of Steel (Demo)',
                         url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
-                        group: 'Auto-loaded',
-                        logo: ''
-                    }];
-                    this.showToast('Using sample stream', 'warning');
-                }
+                        group: 'Demo',
+                        logo: '',
+                        licenseType: null,
+                        licenseKey: null
+                    },
+                    {
+                        id: 1,
+                        name: 'Big Buck Bunny',
+                        url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+                        group: 'Demo',
+                        logo: '',
+                        licenseType: null,
+                        licenseKey: null
+                    },
+                    {
+                        id: 2,
+                        name: 'Sintel (Demo DASH)',
+                        url: 'https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/1/MultiRate.mpd',
+                        group: 'Demo',
+                        logo: '',
+                        licenseType: null,
+                        licenseKey: null
+                    }
+                ];
                 
                 this.extractCategories();
                 this.updateChannelsGrid();
+                this.showToast('Loaded demo channels', 'success');
                 
-                // Auto-play first channel if available
-                if (this.AUTO_LOAD_CONFIG.playFirstChannel && this.channels.length > 0) {
-                    setTimeout(() => {
-                        this.playChannel(0);
-                        const sourceName = successUrl ? new URL(successUrl).hostname : 'backup';
-                        this.showToast(`Auto-playing from ${sourceName}: ${this.channels[0].name}`, 'success');
-                    }, 500);
+                if (this.channels.length > 0) {
+                    this.playChannel(0);
+                }
+            }
+            
+            loadProviderPreset(provider) {
+                const providerChannels = {
+                    cignal: [
+                        {
+                            id: 0,
+                            name: 'Cignal TV Channel 1',
+                            url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
+                            group: 'Cignal',
+                            logo: '',
+                            licenseType: null,
+                            licenseKey: null
+                        }
+                    ],
+                    converge: [
+                        {
+                            id: 0,
+                            name: 'Converge TV 1',
+                            url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+                            group: 'Converge',
+                            logo: '',
+                            licenseType: null,
+                            licenseKey: null
+                        }
+                    ]
+                };
+                
+                this.channels = providerChannels[provider] || [];
+                this.extractCategories();
+                this.updateChannelsGrid();
+                
+                if (this.channels.length > 0) {
+                    this.playChannel(0);
+                    this.showToast(`Loaded ${provider.toUpperCase()} channels`, 'success');
+                }
+            }
+            
+            extractCategories() {
+                this.categories = {
+                    'all': this.channels,
+                    'favorites': this.channels.filter(channel => this.favorites.includes(channel.id))
+                };
+                
+                this.channels.forEach(channel => {
+                    if (channel.group && !this.categories[channel.group]) {
+                        this.categories[channel.group] = this.channels.filter(c => c.group === channel.group);
+                    }
+                });
+                
+                this.updateCategoryTabs();
+            }
+            
+            updateCategoryTabs() {
+                const tabsContainer = document.getElementById('category-tabs');
+                
+                // Remove existing tabs (keep All and Favorites)
+                const existingTabs = Array.from(tabsContainer.querySelectorAll('.category-tab'));
+                existingTabs.forEach(tab => {
+                    if (!['all', 'favorites'].includes(tab.dataset.category)) {
+                        tab.remove();
+                    }
+                });
+                
+                // Add category tabs
+                Object.keys(this.categories).forEach(category => {
+                    if (category !== 'all' && category !== 'favorites') {
+                        const tab = document.createElement('button');
+                        tab.className = 'category-tab';
+                        tab.textContent = category;
+                        tab.dataset.category = category;
+                        tab.addEventListener('click', () => this.switchCategory(category));
+                        tabsContainer.appendChild(tab);
+                    }
+                });
+            }
+            
+            switchCategory(category) {
+                this.currentCategory = category;
+                document.querySelectorAll('.category-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.category === category);
+                });
+                this.updateChannelsGrid();
+            }
+            
+            updateChannelsGrid() {
+                const grid = document.getElementById('channels-grid');
+                grid.innerHTML = '';
+                
+                const channelsToShow = this.categories[this.currentCategory] || this.channels;
+                
+                if (channelsToShow.length === 0) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888; font-size: 12px;">
+                            <i class="fas fa-tv" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
+                            <p>${this.currentCategory === 'favorites' ? 'No favorite channels yet' : 'No channels available'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                channelsToShow.forEach(channel => {
+                    const isFavorite = this.favorites.includes(channel.id);
+                    const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'channel-card';
+                    if (isActive) card.classList.add('active');
+                    
+                    const initial = channel.name.charAt(0).toUpperCase();
+                    const colors = ['#61dafb', '#4fa3c4', '#FF6B35', '#00A8FF'];
+                    const colorIndex = channel.id % colors.length;
+                    
+                    // Add DASH icon for .mpd streams
+                    const isDash = channel.url && channel.url.includes('.mpd');
+                    const streamType = isDash ? ' (DASH)' : '';
+                    
+                    card.innerHTML = `
+                        <div class="channel-logo">
+                            ${channel.logo 
+                                ? `<img src="${channel.logo}" alt="${channel.name}" style="width: 100%; height: 100%; object-fit: contain;">`
+                                : `<div class="logo-placeholder" style="background: ${colors[colorIndex]}">
+                                    <span style="font-weight: bold; font-size: 20px;">${initial}</span>
+                                   </div>`
+                            }
+                        </div>
+                        <div class="channel-name">${channel.name}${streamType}</div>
+                        <div class="channel-group">${channel.group || 'General'}</div>
+                        ${isDash ? '<div style="position: absolute; top: 5px; left: 5px; background: #ff6b35; color: white; padding: 2px 4px; border-radius: 3px; font-size: 8px; font-weight: bold;">DASH</div>' : ''}
+                        ${isFavorite ? '<i class="fas fa-star channel-fav-icon"></i>' : ''}
+                    `;
+                    
+                    card.addEventListener('click', () => this.playChannel(channel.id));
+                    grid.appendChild(card);
+                });
+            }
+            
+            async playChannel(channelId) {
+                const channelIndex = this.channels.findIndex(c => c.id === channelId);
+                if (channelIndex === -1) return;
+                
+                this.currentChannelIndex = channelIndex;
+                const channel = this.channels[channelIndex];
+                
+                console.log('Playing channel:', channel);
+                
+                try {
+                    this.showLoading(true);
+                    this.updateChannelStatus('Loading...');
+                    
+                    // Configure DRM for Widevine
+                    const config = {
+                        drm: {},
+                        streaming: {
+                            bufferingGoal: 30,
+                            rebufferingGoal: 2
+                        }
+                    };
+                    
+                    // Add Widevine license server if available
+                    if (channel.licenseType === 'com.widevine.alpha' && channel.licenseKey) {
+                        config.drm.servers = {
+                            'com.widevine.alpha': channel.licenseKey
+                        };
+                        console.log('Configuring Widevine DRM:', channel.licenseKey);
+                    }
+                    
+                    this.player.configure(config);
+                    
+                    await this.player.load(channel.url);
+                    
+                    this.updateChannelInfo(channel.name);
+                    this.updateChannelNumber(channelIndex + 1);
+                    this.updateFavoriteButton();
+                    this.updateChannelsGrid();
+                    
+                    this.showToast(`Playing: ${channel.name}`, 'success');
+                    
+                } catch (error) {
+                    console.error('Error playing channel:', error);
+                    this.showError(`Error playing channel: ${error.message}`);
+                    this.updateChannelStatus('Error');
+                    
+                    // Try fallback if DRM fails
+                    if (error.code === 6000 || error.code === 6001) {
+                        this.showToast('DRM issue. Trying without license...', 'warning');
+                        try {
+                            const fallbackConfig = { drm: {} };
+                            this.player.configure(fallbackConfig);
+                            await this.player.load(channel.url);
+                        } catch (fallbackError) {
+                            console.error('Fallback also failed:', fallbackError);
+                        }
+                    }
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            toggleFavorite() {
+                const channelId = this.channels[this.currentChannelIndex]?.id;
+                if (channelId === undefined) return;
+                
+                if (this.favorites.includes(channelId)) {
+                    this.favorites = this.favorites.filter(id => id !== channelId);
+                    this.showToast('Removed from favorites');
                 } else {
-                    const sourceName = successUrl ? new URL(successUrl).hostname : 'backup';
-                    this.showToast(`Loaded ${this.channels.length} channels from ${sourceName}`, 'success');
+                    this.favorites.push(channelId);
+                    this.showToast('Added to favorites');
                 }
                 
-            } catch (error) {
-                console.error('Auto-load failed:', error);
-                this.showError('Auto-load failed. Using demo channels.');
-                this.loadDemoChannels();
+                localStorage.setItem('iptv_favorites', JSON.stringify(this.favorites));
+                this.categories.favorites = this.channels.filter(channel => this.favorites.includes(channel.id));
                 
-            } finally {
-                this.showLoading(false);
-            }
-        }, this.AUTO_LOAD_CONFIG.delay);
-    }
-    
-    // M3U PARSING with Widevine DRM support
-    parseM3U(data) {
-        const lines = data.split('\n');
-        const channels = [];
-        let currentChannel = {};
-        let groupTitle = '';
-
-        for (const line of lines) {
-            const trimmedLine = line.trim();
-            
-            if (trimmedLine.startsWith('#EXTM3U')) {
-                continue;
+                this.updateFavoriteButton();
+                this.updateChannelsGrid();
             }
             
-            if (trimmedLine.startsWith('#EXTINF:')) {
-                const info = trimmedLine.split(/,(.*)/s);
-                const params = info[0].split(' ');
-                currentChannel.name = info[1]?.trim() || 'Unknown Channel';
+            nextChannel() {
+                const channels = this.categories[this.currentCategory] || this.channels;
+                if (channels.length === 0) return;
                 
-                // Parse additional EXTINF parameters
-                params.forEach(param => {
-                    if (param.includes('group-title=')) {
-                        currentChannel.group = param.split('=')[1]?.replace(/"/g, '');
-                    }
-                    if (param.includes('tvg-logo=')) {
-                        currentChannel.logo = param.split('=')[1]?.replace(/"/g, '');
-                    }
+                const currentChannel = this.channels[this.currentChannelIndex];
+                const currentIndexInCategory = channels.findIndex(c => c.id === currentChannel.id);
+                const nextIndexInCategory = (currentIndexInCategory + 1) % channels.length;
+                const nextChannel = channels[nextIndexInCategory];
+                
+                if (nextChannel) {
+                    this.playChannel(nextChannel.id);
+                }
+            }
+            
+            prevChannel() {
+                const channels = this.categories[this.currentCategory] || this.channels;
+                if (channels.length === 0) return;
+                
+                const currentChannel = this.channels[this.currentChannelIndex];
+                const currentIndexInCategory = channels.findIndex(c => c.id === currentChannel.id);
+                const prevIndexInCategory = (currentIndexInCategory - 1 + channels.length) % channels.length;
+                const prevChannel = channels[prevIndexInCategory];
+                
+                if (prevChannel) {
+                    this.playChannel(prevChannel.id);
+                }
+            }
+            
+            refreshBrowser() {
+                this.showToast('Refreshing application...', 'info');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+            
+            setupEventListeners() {
+                // Navigation
+                document.getElementById('prev-channel').addEventListener('click', () => this.prevChannel());
+                document.getElementById('next-channel').addEventListener('click', () => this.nextChannel());
+                
+                // MODIFIED: Load YOUR M3U button
+                document.getElementById('load-m3u-btn').addEventListener('click', () => this.loadYourM3U());
+                
+                // MODIFIED: Refresh button
+                document.getElementById('refresh-btn').addEventListener('click', () => this.refreshBrowser());
+                
+                // Direct M3U load
+                document.getElementById('load-direct-m3u-btn').addEventListener('click', () => this.loadDirectM3U());
+                
+                // Demo channels button
+                document.getElementById('load-demo-channels-btn').addEventListener('click', () => this.loadDemoChannels());
+                
+                // Settings presets
+                document.getElementById('load-cignal-preset').addEventListener('click', () => this.loadProviderPreset('cignal'));
+                document.getElementById('load-converge-preset').addEventListener('click', () => this.loadProviderPreset('converge'));
+                
+                // Channel list
+                document.getElementById('channel-list-btn').addEventListener('click', () => this.showChannelList());
+                document.getElementById('close-channels').addEventListener('click', () => this.hideChannelList());
+                
+                // Search
+                document.getElementById('channel-search').addEventListener('input', (e) => this.filterChannels(e.target.value));
+                
+                // Favorite button
+                document.getElementById('favorite-btn').addEventListener('click', () => this.toggleFavorite());
+                
+                // Settings
+                document.getElementById('settings-btn').addEventListener('click', () => this.showSettings());
+                document.getElementById('close-settings').addEventListener('click', () => this.hideSettings());
+                
+                // Fullscreen
+                document.getElementById('maximize-btn').addEventListener('click', () => this.toggleFullscreen());
+                
+                // Reload playlist
+                document.getElementById('reload-playlist-btn').addEventListener('click', () => this.loadYourM3U());
+                
+                // Demo button in grid
+                document.getElementById('load-demo-btn')?.addEventListener('click', () => this.loadYourM3U());
+                
+                // Category tabs
+                document.querySelectorAll('.category-tab').forEach(tab => {
+                    tab.addEventListener('click', () => this.switchCategory(tab.dataset.category));
                 });
-            } 
-            else if (trimmedLine.startsWith('#EXTGRP:')) {
-                groupTitle = trimmedLine.substring(8).trim();
             }
-            else if (trimmedLine.startsWith('#KODIPROP:')) {
-                const prop = trimmedLine.substring(10);
-                if (prop.startsWith('inputstream.adaptive.license_type=')) {
-                    const type = prop.split('=')[1]?.trim();
-                    currentChannel.licenseType = type.toLowerCase() === 'clearkey' ? 'org.w3.clearkey' : type;
-                } 
-                else if (prop.startsWith('inputstream.adaptive.license_key=')) {
-                    const keyData = prop.split('=').slice(1).join('=');
-                    this.parseLicenseKeyData(currentChannel, keyData);
+            
+            showChannelList() {
+                if (this.channels.length === 0) {
+                    this.showToast('No channels loaded yet');
+                    return;
                 }
-            }
-            else if (trimmedLine && !trimmedLine.startsWith('#')) {
-                currentChannel.url = trimmedLine;
-                if (!currentChannel.group && groupTitle) {
-                    currentChannel.group = groupTitle;
-                }
-                
-                // Auto-detect DRM from URL
-                if (!currentChannel.licenseType) {
-                    if (currentChannel.url.includes('.mpd') || 
-                        currentChannel.url.includes('dash') ||
-                        currentChannel.url.includes('widevine')) {
-                        currentChannel.licenseType = 'com.widevine.alpha';
-                    }
-                }
-                
-                // Add channel ID
-                currentChannel.id = channels.length;
-                
-                // Log channel info for debugging
-                console.log(`Channel ${currentChannel.id}: ${currentChannel.name}`, {
-                    url: currentChannel.url.substring(0, 50) + '...',
-                    licenseType: currentChannel.licenseType,
-                    group: currentChannel.group
-                });
-                
-                channels.push({ ...currentChannel });
-                currentChannel = {};
-            }
-        }
-        return channels;
-    }
-    
-    parseLicenseKeyData(channel, keyData) {
-        console.log('Parsing license key data:', keyData);
-        
-        if (keyData.trim().startsWith('{')) {
-            try {
-                const parsedJson = JSON.parse(keyData);
-                if (parsedJson.keys && parsedJson.keys.length > 0) {
-                    const keyInfo = parsedJson.keys[0];
-                    if (keyInfo.k && keyInfo.kid) {
-                        channel.k2 = this.base64UrlToHex(keyInfo.k);
-                        channel.k1 = this.base64UrlToHex(keyInfo.kid);
-                        channel.licenseType = 'org.w3.clearkey';
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to parse license_key JSON:', keyData, e);
-            }
-        }
-        else if (keyData.includes('http://') || keyData.includes('https://')) {
-            channel.licenseKey = keyData.trim();
-            // Auto-detect Widevine
-            if (keyData.includes('widevine')) {
-                channel.licenseType = 'com.widevine.alpha';
-            }
-        } 
-        else {
-            const keyParts = keyData.split(':');
-            if (keyParts.length === 2 && keyParts[0].trim() && keyParts[1].trim()) {
-                channel.k1 = keyParts[0].trim();
-                channel.k2 = keyParts[1].trim();
-                channel.licenseType = 'org.w3.clearkey';
-            }
-        }
-        
-        console.log('License data parsed:', {
-            licenseType: channel.licenseType,
-            hasLicenseKey: !!channel.licenseKey,
-            hasKeys: !!(channel.k1 && channel.k2)
-        });
-    }
-    
-    base64UrlToHex(base64Url) {
-        try {
-            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            while (base64.length % 4) {
-                base64 += '=';
-            }
-            const raw = atob(base64);
-            let hex = '';
-            for (let i = 0; i < raw.length; i++) {
-                hex += raw.charCodeAt(i).toString(16).padStart(2, '0');
-            }
-            return hex;
-        } catch (e) {
-            console.error('Failed to decode base64 string:', base64Url, e);
-            return null;
-        }
-    }
-    
-    loadDemoChannels() {
-        this.channels = [
-            {
-                name: 'Tears of Steel (Demo)',
-                url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
-                group: 'Demo',
-                logo: '',
-                id: 0
-            },
-            {
-                name: 'Big Buck Bunny',
-                url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                group: 'Demo',
-                logo: '',
-                id: 1
-            },
-            {
-                name: 'Sintel (Demo)',
-                url: 'https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/1/MultiRate.mpd',
-                group: 'Demo',
-                logo: '',
-                id: 2
-            }
-        ];
-        
-        this.extractCategories();
-        this.updateChannelsGrid();
-        
-        if (this.channels.length > 0) {
-            this.playChannel(0);
-        }
-    }
-    
-    extractCategories() {
-        this.categories = {
-            'all': this.channels,
-            'favorites': this.channels.filter(channel => this.favorites.includes(channel.id))
-        };
-        
-        this.channels.forEach(channel => {
-            if (channel.group && !this.categories[channel.group]) {
-                this.categories[channel.group] = this.channels.filter(c => c.group === channel.group);
-            }
-        });
-        
-        this.updateCategoryTabs();
-    }
-    
-    updateCategoryTabs() {
-        const tabsContainer = document.getElementById('category-tabs');
-        
-        // Remove existing tabs (keep All and Favorites)
-        const existingTabs = Array.from(tabsContainer.querySelectorAll('.category-tab'));
-        existingTabs.forEach(tab => {
-            if (!['all', 'favorites'].includes(tab.dataset.category)) {
-                tab.remove();
-            }
-        });
-        
-        // Add category tabs
-        Object.keys(this.categories).forEach(category => {
-            if (category !== 'all' && category !== 'favorites') {
-                const tab = document.createElement('button');
-                tab.className = 'category-tab';
-                tab.textContent = category;
-                tab.dataset.category = category;
-                tab.addEventListener('click', () => this.switchCategory(category));
-                tabsContainer.appendChild(tab);
-            }
-        });
-    }
-    
-    switchCategory(category) {
-        this.currentCategory = category;
-        document.querySelectorAll('.category-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.category === category);
-        });
-        this.updateChannelsGrid();
-    }
-    
-    updateChannelsGrid() {
-        const grid = document.getElementById('channels-grid');
-        grid.innerHTML = '';
-        
-        const channelsToShow = this.categories[this.currentCategory] || this.channels;
-        
-        if (channelsToShow.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888; font-size: 12px;">
-                    <i class="fas fa-tv" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
-                    <p>${this.currentCategory === 'favorites' ? 'No favorite channels yet' : 'No channels available'}</p>
-                </div>
-            `;
-            return;
-        }
-        
-        channelsToShow.forEach(channel => {
-            const isFavorite = this.favorites.includes(channel.id);
-            const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
-            const hasDRM = channel.licenseType === 'com.widevine.alpha';
-            
-            const card = document.createElement('div');
-            card.className = 'channel-card';
-            if (isActive) card.classList.add('active');
-            
-            const initial = channel.name.charAt(0).toUpperCase();
-            const colors = ['#61dafb', '#4fa3c4', '#FF6B35', '#00A8FF'];
-            const colorIndex = channel.id % colors.length;
-            
-            card.innerHTML = `
-                <div class="channel-logo">
-                    ${channel.logo 
-                        ? `<img src="${channel.logo}" alt="${channel.name}" style="width: 100%; height: 100%; object-fit: contain;">`
-                        : `<div class="logo-placeholder" style="background: ${colors[colorIndex]}">
-                            <span style="font-weight: bold; font-size: 20px;">${initial}</span>
-                           </div>`
-                    }
-                </div>
-                <div class="channel-name">${channel.name}</div>
-                <div class="channel-group">${channel.group || 'General'}</div>
-                ${isFavorite ? '<i class="fas fa-star channel-fav-icon"></i>' : ''}
-                ${hasDRM ? '<div class="drm-indicator">DRM</div>' : ''}
-            `;
-            
-            card.addEventListener('click', () => this.playChannel(channel.id));
-            grid.appendChild(card);
-        });
-    }
-    
-    async playChannel(channelId) {
-        const channelIndex = this.channels.findIndex(c => c.id === channelId);
-        if (channelIndex === -1) return;
-        
-        this.currentChannelIndex = channelIndex;
-        const channel = this.channels[channelIndex];
-        
-        console.log('Playing channel:', {
-            name: channel.name,
-            url: channel.url.substring(0, 100) + '...',
-            licenseType: channel.licenseType,
-            id: channel.id
-        });
-        
-        try {
-            this.showLoading(true);
-            
-            // Stop current playback
-            if (this.player) {
-                await this.player.unload();
+                this.updateChannelList();
+                document.getElementById('channel-overlay').style.display = 'flex';
+                document.getElementById('channel-search').focus();
             }
             
-            // Configure DRM based on channel type
-            const config = {
-                drm: {},
-                streaming: {
-                    bufferingGoal: 30,
-                    rebufferingGoal: 2
-                }
-            };
-            
-            // Configure Widevine DRM
-            if (channel.licenseType === 'com.widevine.alpha') {
-                console.log('Configuring Widevine DRM with server:', this.WIDEVINE_LICENSE_SERVER);
+            updateChannelList() {
+                const channelsList = document.getElementById('channels-list');
+                channelsList.innerHTML = '';
                 
-                config.drm.servers = {
-                    'com.widevine.alpha': this.WIDEVINE_LICENSE_SERVER
-                };
-                
-                // Add request filters for debugging
-                config.drm.advanced = {
-                    'com.widevine.alpha': {
-                        videoRobustness: 'SW_SECURE_CRYPTO',
-                        audioRobustness: 'SW_SECURE_CRYPTO',
-                        persistentState: 'optional',
-                        distinctiveIdentifier: 'optional',
-                        sessionType: 'temporary'
-                    }
-                };
-                
-                // Add network request filter for debugging
-                this.player.getNetworkingEngine().registerRequestFilter((type, request) => {
-                    console.log('Network Request:', {
-                        type: type,
-                        uri: request.uris[0],
-                        method: request.method,
-                        headers: request.headers
+                this.channels.forEach(channel => {
+                    const isFavorite = this.favorites.includes(channel.id);
+                    const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'channel-item';
+                    if (isActive) item.classList.add('active');
+                    
+                    const initial = channel.name.charAt(0).toUpperCase();
+                    const isDash = channel.url && channel.url.includes('.mpd');
+                    
+                    item.innerHTML = `
+                        <div style="width: 40px; height: 40px; border-radius: 6px; margin-right: 10px; 
+                                    background: ${channel.logo ? `url('${channel.logo}')` : '#61dafb'}; 
+                                    background-size: contain; background-position: center; background-repeat: no-repeat;
+                                    display: flex; align-items: center; justify-content: center;">
+                            ${!channel.logo ? `<span style="font-weight: bold; font-size: 16px; color: #000;">${initial}</span>` : ''}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 13px;">${channel.name} ${isDash ? ' (DASH)' : ''}</div>
+                            <div style="font-size: 11px; color: #aaa;">${channel.group || 'General'}</div>
+                        </div>
+                        ${isFavorite ? '<i class="fas fa-star" style="color: #ff6b35; margin-left: 8px;"></i>' : ''}
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        this.playChannel(channel.id);
+                        this.hideChannelList();
                     });
+                    
+                    channelsList.appendChild(item);
                 });
+            }
+            
+            filterChannels(searchTerm) {
+                const items = document.querySelectorAll('.channel-item');
+                const searchLower = searchTerm.toLowerCase();
                 
-                this.updateDRMStatus('Widevine DRM Active');
-            }
-            // Configure ClearKey DRM
-            else if (channel.licenseType === 'org.w3.clearkey' && channel.k1 && channel.k2) {
-                config.drm.clearKeys = { [channel.k1]: channel.k2 };
-                this.updateDRMStatus('ClearKey DRM Active');
-            }
-            // No DRM
-            else {
-                this.updateDRMStatus('No DRM');
-            }
-            
-            this.player.configure(config);
-            
-            // Load and play the channel
-            console.log('Loading stream from:', channel.url);
-            await this.player.load(channel.url);
-            
-            this.updateChannelInfo(channel.name);
-            this.updateChannelNumber(channelIndex + 1);
-            this.updateFavoriteButton();
-            this.updateChannelsGrid();
-            
-            this.showToast(`Playing: ${channel.name}${channel.licenseType ? ' (DRM Protected)' : ''}`, 'success');
-            
-        } catch (error) {
-            console.error('Error playing channel:', error);
-            
-            // Log detailed error information
-            if (error.code === 6003 || error.code === 6016) { // DRM errors
-                console.error('DRM Error details:', {
-                    code: error.code,
-                    severity: error.severity,
-                    category: error.category,
-                    message: error.message,
-                    data: error.data
+                items.forEach(item => {
+                    const channelName = item.querySelector('div > div:first-child').textContent.toLowerCase();
+                    item.style.display = channelName.includes(searchLower) ? 'flex' : 'none';
                 });
-                
-                this.showToast('DRM error detected. Trying fallback options...', 'warning');
-                
-                // Try different approaches
-                await this.tryFallbackPlayback(channel);
-                
-            } else if (error.code === 1002 || error.code === 4000) { // Network errors
-                this.showToast('Network error. Check connection and URL.', 'error');
-                this.updateChannelStatus('Network Error');
-            } else {
-                this.showError(`Error: ${error.code} - ${error.message || 'Unknown error'}`);
-                this.updateChannelStatus('Error');
             }
-        } finally {
-            this.showLoading(false);
-        }
-    }
-    
-    async tryFallbackPlayback(channel) {
-        // Method 1: Try without DRM
-        try {
-            console.log('Trying playback without DRM...');
-            this.player.configure({
-                drm: {},
-                streaming: {
-                    bufferingGoal: 30,
-                    rebufferingGoal: 2
-                }
-            });
             
-            await this.player.load(channel.url);
-            this.showToast('Playing without DRM (fallback)', 'success');
+            hideChannelList() {
+                document.getElementById('channel-overlay').style.display = 'none';
+                document.getElementById('channel-search').value = '';
+            }
             
-            this.updateChannelInfo(channel.name);
-            this.updateChannelNumber(this.currentChannelIndex + 1);
-            this.updateFavoriteButton();
-            this.updateChannelsGrid();
-            return;
-        } catch (error1) {
-            console.error('Fallback 1 failed:', error1);
-        }
-        
-        // Method 2: Try with different license server
-        try {
-            console.log('Trying with alternative license server...');
-            this.player.configure({
-                drm: {
-                    servers: {
-                        'com.widevine.alpha': 'https://proxy.uat.widevine.com/proxy'
+            showSettings() {
+                document.getElementById('settings-panel').classList.add('open');
+            }
+            
+            hideSettings() {
+                document.getElementById('settings-panel').classList.remove('open');
+            }
+            
+            showLoading(show) {
+                document.getElementById('loading').classList.toggle('show', show);
+            }
+            
+            showStatsPanel(show) {
+                document.getElementById('stats-panel').classList.toggle('show', show);
+            }
+            
+            updateChannelInfo(name) {
+                document.getElementById('current-channel').textContent = name;
+            }
+            
+            updateChannelStatus(status) {
+                document.getElementById('channel-status').textContent = status;
+            }
+            
+            updateChannelNumber(number) {
+                document.getElementById('channel-number').textContent = `CH ${number}`;
+            }
+            
+            updateFavoriteButton() {
+                const favoriteBtn = document.getElementById('favorite-btn');
+                const channelId = this.channels[this.currentChannelIndex]?.id;
+                const isFavorite = channelId !== undefined && this.favorites.includes(channelId);
+                
+                favoriteBtn.classList.toggle('active', isFavorite);
+                favoriteBtn.innerHTML = isFavorite ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+            }
+            
+            updateFavoritesUI() {
+                this.updateFavoriteButton();
+            }
+            
+            showToast(message, type = 'success', duration = 2000) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.style.background = type === 'error' ? '#ff4444' : 
+                                        type === 'warning' ? '#ffa500' : 
+                                        type === 'info' ? '#61dafb' : '#4CAF50';
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+            
+            showError(message) {
+                console.error(message);
+                this.showToast(message, 'error', 3000);
+            }
+            
+            toggleFullscreen() {
+                const appContainer = document.getElementById('app-container');
+                
+                if (!document.fullscreenElement) {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen();
                     }
+                    appContainer.classList.add('fullscreen');
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                    appContainer.classList.remove('fullscreen');
                 }
-            });
-            
-            await this.player.load(channel.url);
-            this.showToast('Playing with alternative DRM server', 'success');
-            
-            this.updateChannelInfo(channel.name);
-            this.updateChannelNumber(this.currentChannelIndex + 1);
-            this.updateFavoriteButton();
-            this.updateChannelsGrid();
-            return;
-        } catch (error2) {
-            console.error('Fallback 2 failed:', error2);
-        }
-        
-        // Method 3: Check if URL needs authentication
-        if (channel.url.includes('AuthInfo')) {
-            this.showToast('Channel requires authentication. May not be playable.', 'warning');
-        }
-        
-        this.showError('Cannot play this DRM-protected channel');
-        this.updateChannelStatus('DRM Error');
-    }
-    
-    toggleFavorite() {
-        const channelId = this.channels[this.currentChannelIndex]?.id;
-        if (channelId === undefined) return;
-        
-        if (this.favorites.includes(channelId)) {
-            this.favorites = this.favorites.filter(id => id !== channelId);
-            this.showToast('Removed from favorites');
-        } else {
-            this.favorites.push(channelId);
-            this.showToast('Added to favorites');
-        }
-        
-        localStorage.setItem('iptv_favorites', JSON.stringify(this.favorites));
-        this.categories.favorites = this.channels.filter(channel => this.favorites.includes(channel.id));
-        
-        this.updateFavoriteButton();
-        this.updateChannelsGrid();
-    }
-    
-    nextChannel() {
-        const channels = this.categories[this.currentCategory] || this.channels;
-        if (channels.length === 0) return;
-        
-        const currentChannel = this.channels[this.currentChannelIndex];
-        const currentIndexInCategory = channels.findIndex(c => c.id === currentChannel.id);
-        const nextIndexInCategory = (currentIndexInCategory + 1) % channels.length;
-        const nextChannel = channels[nextIndexInCategory];
-        
-        this.playChannel(nextChannel.id);
-    }
-    
-    prevChannel() {
-        const channels = this.categories[this.currentCategory] || this.channels;
-        if (channels.length === 0) return;
-        
-        const currentChannel = this.channels[this.currentChannelIndex];
-        const currentIndexInCategory = channels.findIndex(c => c.id === currentChannel.id);
-        const prevIndexInCategory = (currentIndexInCategory - 1 + channels.length) % channels.length;
-        const prevChannel = channels[prevIndexInCategory];
-        
-        this.playChannel(prevChannel.id);
-    }
-    
-    openCignalWebsite() {
-        this.showToast('Opening Cignal TV...', 'info');
-        window.location.href = 'https://reynielcgnaltv.pages.dev/';
-    }
-    
-    refreshBrowser() {
-        this.showToast('Refreshing application...', 'info');
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
-    }
-    
-    setupEventListeners() {
-        // Navigation
-        document.getElementById('prev-channel').addEventListener('click', () => this.prevChannel());
-        document.getElementById('next-channel').addEventListener('click', () => this.nextChannel());
-        
-        // Cignal button opens website
-        document.getElementById('cignal-btn').addEventListener('click', () => this.openCignalWebsite());
-        
-        // Converge button refreshes browser
-        document.getElementById('converge-btn').addEventListener('click', () => this.refreshBrowser());
-        
-        // Settings presets
-        document.getElementById('load-cignal-preset').addEventListener('click', () => this.loadProviderPreset('cignal'));
-        document.getElementById('load-converge-preset').addEventListener('click', () => this.loadProviderPreset('converge'));
-        
-        // Channel list
-        document.getElementById('channel-list-btn').addEventListener('click', () => this.showChannelList());
-        document.getElementById('close-channels').addEventListener('click', () => this.hideChannelList());
-        
-        // Search
-        document.getElementById('channel-search').addEventListener('input', (e) => this.filterChannels(e.target.value));
-        
-        // Favorite button
-        document.getElementById('favorite-btn').addEventListener('click', () => this.toggleFavorite());
-        
-        // Settings
-        document.getElementById('settings-btn').addEventListener('click', () => this.showSettings());
-        document.getElementById('close-settings').addEventListener('click', () => this.hideSettings());
-        
-        // Fullscreen
-        document.getElementById('maximize-btn').addEventListener('click', () => this.toggleFullscreen());
-        
-        // Reload playlist
-        document.getElementById('reload-playlist-btn').addEventListener('click', () => this.initAutoLoad());
-        
-        // Category tabs
-        document.querySelectorAll('.category-tab').forEach(tab => {
-            tab.addEventListener('click', () => this.switchCategory(tab.dataset.category));
-        });
-        
-        // Widevine server configuration
-        document.getElementById('widevine-server').addEventListener('change', (e) => {
-            this.WIDEVINE_LICENSE_SERVER = e.target.value;
-            localStorage.setItem('widevine_server', e.target.value);
-            this.showToast('Widevine server updated', 'success');
-        });
-        
-        // Add debug button
-        document.getElementById('debug-btn')?.addEventListener('click', () => this.debugInfo());
-    }
-    
-    showChannelList() {
-        this.updateChannelList();
-        document.getElementById('channel-overlay').style.display = 'flex';
-        document.getElementById('channel-search').focus();
-    }
-    
-    updateChannelList() {
-        const channelsList = document.getElementById('channels-list');
-        channelsList.innerHTML = '';
-        
-        this.channels.forEach(channel => {
-            const isFavorite = this.favorites.includes(channel.id);
-            const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
-            const hasDRM = channel.licenseType === 'com.widevine.alpha';
-            
-            const item = document.createElement('div');
-            item.className = 'channel-item';
-            if (isActive) item.classList.add('active');
-            
-            const initial = channel.name.charAt(0).toUpperCase();
-            
-            item.innerHTML = `
-                <div style="width: 40px; height: 40px; border-radius: 6px; margin-right: 10px; 
-                            background: ${channel.logo ? `url('${channel.logo}')` : '#61dafb'}; 
-                            background-size: contain; background-position: center; background-repeat: no-repeat;
-                            display: flex; align-items: center; justify-content: center;">
-                    ${!channel.logo ? `<span style="font-weight: bold; font-size: 16px; color: #000;">${initial}</span>` : ''}
-                </div>
-                <div style="flex: 1;">
-                    <div style="font-weight: bold; font-size: 13px;">${channel.name}</div>
-                    <div style="font-size: 11px; color: #aaa;">${channel.group || 'General'}</div>
-                </div>
-                ${isFavorite ? '<i class="fas fa-star" style="color: #ff6b35; margin-left: 8px;"></i>' : ''}
-                ${hasDRM ? '<span style="background: #FF6B35; color: white; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-left: 8px;">DRM</span>' : ''}
-            `;
-            
-            item.addEventListener('click', () => {
-                this.playChannel(channel.id);
-                this.hideChannelList();
-            });
-            
-            channelsList.appendChild(item);
-        });
-    }
-    
-    filterChannels(searchTerm) {
-        const items = document.querySelectorAll('.channel-item');
-        const searchLower = searchTerm.toLowerCase();
-        
-        items.forEach(item => {
-            const channelName = item.querySelector('div > div:first-child').textContent.toLowerCase();
-            item.style.display = channelName.includes(searchLower) ? 'flex' : 'none';
-        });
-    }
-    
-    hideChannelList() {
-        document.getElementById('channel-overlay').style.display = 'none';
-        document.getElementById('channel-search').value = '';
-    }
-    
-    showSettings() {
-        document.getElementById('settings-panel').classList.add('open');
-    }
-    
-    hideSettings() {
-        document.getElementById('settings-panel').classList.remove('open');
-    }
-    
-    showLoading(show) {
-        document.getElementById('loading').classList.toggle('show', show);
-    }
-    
-    showStatsPanel(show) {
-        document.getElementById('stats-panel').classList.toggle('show', show);
-    }
-    
-    updateChannelInfo(name) {
-        document.getElementById('current-channel').textContent = name;
-    }
-    
-    updateChannelStatus(status) {
-        document.getElementById('channel-status').textContent = status;
-    }
-    
-    updateChannelNumber(number) {
-        document.getElementById('channel-number').textContent = `CH ${number}`;
-    }
-    
-    updateDRMStatus(status) {
-        document.getElementById('drm-status').textContent = status;
-    }
-    
-    updateFavoriteButton() {
-        const favoriteBtn = document.getElementById('favorite-btn');
-        const channelId = this.channels[this.currentChannelIndex]?.id;
-        const isFavorite = channelId !== undefined && this.favorites.includes(channelId);
-        
-        favoriteBtn.classList.toggle('active', isFavorite);
-        favoriteBtn.innerHTML = isFavorite ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
-    }
-    
-    updateFavoritesUI() {
-        this.updateFavoriteButton();
-    }
-    
-    showToast(message, type = 'success', duration = 2000) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = `toast ${type}`;
-        toast.classList.add('show');
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, duration);
-    }
-    
-    showError(message) {
-        console.error(message);
-        this.showToast(message, 'error', 3000);
-    }
-    
-    toggleFullscreen() {
-        const appContainer = document.getElementById('app-container');
-        
-        if (!document.fullscreenElement) {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
             }
-            appContainer.classList.add('fullscreen');
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-            appContainer.classList.remove('fullscreen');
         }
-    }
-    
-    debugInfo() {
-        console.log('=== DEBUG INFO ===');
-        console.log('Channels:', this.channels.length);
-        console.log('Current channel:', this.channels[this.currentChannelIndex]);
-        console.log('Widevine server:', this.WIDEVINE_LICENSE_SERVER);
-        console.log('Player state:', this.player ? 'Initialized' : 'Not initialized');
-        console.log('Browser:', navigator.userAgent);
-        console.log('Shaka version:', shaka.Player.version);
-        console.log('==================');
         
-        this.showToast('Debug info logged to console', 'info');
-    }
-}
-
-// Initialize app
-document.addEventListener('DOMContentLoaded', () => {
-    window.iptvApp = new WorkingIPTVApp();
-});
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            window.iptvApp = new WorkingIPTVApp();
+            
+            // Add your M3U to textarea by default
+            setTimeout(() => {
+                const textarea = document.getElementById('m3u-textarea');
+                if (textarea) {
+                    textarea.value = window.iptvApp.YOUR_M3U_CONTENT;
+                }
+            }, 1000);
+        });
     </script>
 </body>
 </html>
