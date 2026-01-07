@@ -5,7 +5,7 @@
     <meta content="width=device-width,initial-scale=1" name="viewport">
     <meta content="no-referrer" name="referrer">
     <link href="data:image/x-icon;," rel="icon">
-    <title>ReynielTV - Enhanced IPTV Player</title>
+    <title>ReynielTV - Philippine IPTV Player</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.11.2/controls.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -155,8 +155,6 @@
         .provider-btn {
             flex: 1;
             padding: 10px 8px;
-            background: #61dafb;
-            color: #000;
             border: none;
             border-radius: 6px;
             font-size: 12px;
@@ -168,20 +166,19 @@
             gap: 6px;
             white-space: nowrap;
             min-height: 36px;
+            color: white;
         }
         
         .provider-btn:active {
             transform: scale(0.98);
         }
         
-        .provider-btn.cignal {
+        .provider-btn.ph-channels {
             background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
-            color: white;
         }
         
-        .provider-btn.converge {
+        .provider-btn.refresh {
             background: linear-gradient(135deg, #00A8FF 0%, #0097E6 100%);
-            color: white;
         }
         
         /* Navigation Buttons - SECOND ROW (BABA) */
@@ -329,6 +326,14 @@
             right: 5px;
             color: #ff6b35;
             font-size: 12px;
+        }
+        
+        .channel-drm-icon {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            color: #61dafb;
+            font-size: 10px;
         }
         
         /* Bottom actions */
@@ -572,11 +577,11 @@
             width: 100%;
         }
         
-        .provider-preset-btn.cignal-preset {
+        .provider-preset-btn.ph-channels-preset {
             background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
         }
         
-        .provider-preset-btn.converge-preset {
+        .provider-preset-btn.demo-preset {
             background: linear-gradient(135deg, #00A8FF 0%, #0097E6 100%);
         }
         
@@ -607,26 +612,30 @@
             display: none;
         }
         
-        /* NEW: Direct M3U input field */
-        .m3u-input-container {
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }
-        
-        .m3u-input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 8px;
-            background: #1a1a1a;
-            border: 1px solid #444;
-            border-radius: 5px;
+        /* Channel quality badge */
+        .quality-badge {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(255, 107, 53, 0.8);
             color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
         }
         
-        .provider-preset-btn.direct-m3u {
-            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+        /* Connection status */
+        .connection-status {
+            position: absolute;
+            top: 10px;
+            left: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #61dafb;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            z-index: 10;
         }
     </style>
 </head>
@@ -637,7 +646,8 @@
             <div id="brand-logo">
                 <div id="brand-circle">Reyniel<br>TV</div>
             </div>
-            <div class="channel-number" id="channel-number">CH 1</div>
+            <div class="channel-number" id="channel-number">CH 0</div>
+            <div class="connection-status" id="connection-status">DRM: Widevine</div>
             <video id="video" controls playsinline>
                 Your browser does not support the video tag.
             </video>
@@ -681,17 +691,17 @@
                 </button>
             </div>
             
-            <!-- Provider Buttons - TOP ROW (NASA TAAS NA!) -->
+            <!-- Provider Buttons - TOP ROW -->
             <div id="provider-buttons">
-                <button class="provider-btn cignal" id="load-m3u-btn">
-                    <i class="fas fa-file-alt"></i> LOAD YOUR M3U
+                <button class="provider-btn ph-channels" id="ph-channels-btn">
+                    <i class="fas fa-tv"></i> PH CHANNELS
                 </button>
-                <button class="provider-btn converge" id="refresh-btn">
+                <button class="provider-btn refresh" id="refresh-btn">
                     <i class="fas fa-redo"></i> REFRESH
                 </button>
             </div>
             
-            <!-- Navigation Buttons - SECOND ROW (BABA) -->
+            <!-- Navigation Buttons - SECOND ROW -->
             <div id="nav-buttons">
                 <button class="nav-btn" id="prev-channel">
                     <i class="fas fa-chevron-left"></i> PREV CHANNEL
@@ -705,17 +715,20 @@
             <div id="category-tabs">
                 <button class="category-tab active" data-category="all">All Channels</button>
                 <button class="category-tab" data-category="favorites">Favorites</button>
+                <button class="category-tab" data-category="entertainment">Entertainment</button>
+                <button class="category-tab" data-category="news">News</button>
+                <button class="category-tab" data-category="sports">Sports</button>
+                <button class="category-tab" data-category="movies">Movies</button>
+                <button class="category-tab" data-category="international">International</button>
             </div>
             
             <!-- Channels Grid -->
             <div id="channels-grid">
                 <!-- Channels will be loaded here -->
-                <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888; font-size: 12px;">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #888; font-size: 12px;">
                     <i class="fas fa-tv" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
-                    <p>No channels loaded</p>
-                    <button id="load-demo-btn" style="margin-top: 15px; padding: 10px 20px; background: #61dafb; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                        <i class="fas fa-play-circle"></i> Click "LOAD YOUR M3U" above
-                    </button>
+                    <p>Click "PH CHANNELS" to load Philippine TV channels</p>
+                    <p style="font-size: 10px; margin-top: 5px;">Powered by Shaka Player with Widevine DRM support</p>
                 </div>
             </div>
             
@@ -734,7 +747,7 @@
     <!-- Channel List Overlay -->
     <div id="channel-overlay">
         <div id="channel-header">
-            <h3>All Channels</h3>
+            <h3>All Channels ({{count}})</h3>
             <button id="close-channels">Close</button>
         </div>
         <input type="text" id="channel-search" placeholder="Search channels...">
@@ -750,37 +763,40 @@
             </button>
         </div>
         
-        <!-- NEW: Direct M3U Input -->
-        <div class="m3u-input-container">
-            <h4 style="margin-bottom: 10px;">Load M3U Playlist</h4>
-            <textarea id="m3u-textarea" class="m3u-input" rows="8" placeholder="Paste your M3U content here..."></textarea>
-            <button class="provider-preset-btn direct-m3u" id="load-direct-m3u-btn">
-                <i class="fas fa-upload"></i> Load Pasted M3U
-            </button>
-        </div>
-        
         <!-- Provider Presets -->
         <div class="settings-option">
             <h4 style="margin-bottom: 10px;">Quick Load Presets</h4>
-            <button class="provider-preset-btn cignal-preset" id="load-cignal-preset">
-                <i class="fas fa-satellite-dish"></i> Load Cignal Channels
+            <button class="provider-preset-btn ph-channels-preset" id="load-ph-channels-preset">
+                <i class="fas fa-tv"></i> Load Philippine Channels
             </button>
-            <button class="provider-preset-btn converge-preset" id="load-converge-preset">
-                <i class="fas fa-wifi"></i> Load Converge Channels
+            <button class="provider-preset-btn demo-preset" id="load-demo-preset">
+                <i class="fas fa-play-circle"></i> Load Demo Channels
             </button>
         </div>
         
-        <!-- Demo Channels -->
         <div class="settings-option">
-            <button class="provider-preset-btn" id="load-demo-channels-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <i class="fas fa-play-circle"></i> Load Demo Channels
-            </button>
+            <label class="settings-label">Buffer Size (seconds):</label>
+            <select class="settings-select" id="buffer-size">
+                <option value="10">10</option>
+                <option value="30" selected>30</option>
+                <option value="60">60</option>
+            </select>
         </div>
         
         <div class="settings-option">
             <button class="action-btn" id="reload-playlist-btn" style="width: 100%; margin-top: 10px; font-size: 14px; padding: 12px;">
                 <i class="fas fa-sync-alt"></i> Reload Playlist
             </button>
+        </div>
+        
+        <div class="settings-option" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #444;">
+            <h4 style="margin-bottom: 10px;">Player Info</h4>
+            <div style="font-size: 12px; color: #aaa;">
+                <p>Version: 2.0</p>
+                <p>Player: Shaka Player 4.7.11</p>
+                <p>DRM: Widevine</p>
+                <p>Channels: <span id="channel-count">0</span></p>
+            </div>
         </div>
     </div>
     
@@ -790,8 +806,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
     
     <script>
-        // WORKING IPTV App - WITH YOUR M3U PLAYLIST SUPPORT
-        class WorkingIPTVApp {
+        // UPDATED IPTV App with ALL Philippine Channels
+        class PhilippineIPTVApp {
             constructor() {
                 this.channels = [];
                 this.currentChannelIndex = 0;
@@ -800,33 +816,131 @@
                 this.categories = {};
                 this.currentCategory = 'all';
                 
-                // YOUR ACTUAL M3U PLAYLIST CONTENT
-                this.YOUR_M3U_CONTENT = `#EXTM3U
-#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
-#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
-#EXTINF:-1, Channel 1065
-https://136.158.97.2:6610/001/2/ch00000090990000001065/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAosKg8aLji3LHWqHUI%2FwQyJsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001085&contentid=ch00000000000000001085&videoid=ch00000090990000001065&recommendtype=0&userid=1368249806492&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=NJY3IWFAY6XXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20448820260101155236346387&ispcode=55
-
-#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
-#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
-#EXTINF:-1, Channel 1075
-https://136.158.97.2:6610/001/2/ch00000090990000001075/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAqJxLC59eO5kyq497fsAC7QsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001134&contentid=ch00000000000000001134&videoid=ch00000090990000001075&recommendtype=0&userid=1265632122474&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=H3ED17F8SJXXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20447020260101155236141564&ispcode=55
-
-#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
-#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
-#EXTINF:-1, Channel 1077
-https://136.239.158.30:6610/001/2/ch00000090990000001077/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMArHUpvQtyXgWxpVCozt4hcgsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001136&contentid=ch00000000000000001136&videoid=ch00000090990000001077&recommendtype=0&userid=1058297419636&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=B8CE333QUH6XXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20447420260101155236077598&ispcode=55
-
-#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
-#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
-#EXTINF:-1, Channel 1078
-https://136.239.158.18:6610/001/2/ch00000090990000001078/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAq9SZLE5HgafIcQ2VcLQB9EsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001137&contentid=ch00000000000000001137&videoid=ch00000090990000001078&recommendtype=0&userid=1960500443734&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=8WK79ZSBXVGXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20447120260101155236008695&ispcode=55
-
-#KODIPROP:inputstream.adaptive.license_type=com.widevine.alpha
-#KODIPROP:inputstream.adaptive.license_key=https://ottmdrm.comclark.com/widevine/
-#EXTINF:-1, Channel 1079
-https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAoglCgy7TAZamPXsCV8PgebsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001138&contentid=ch00000000000000001138&videoid=ch00000090990000001079&recommendtype=0&userid=1022847749017&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=LZTWKL0XP7XXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20445920260101155236183812&ispcode=55`;
-
+                // PH Channels Data - LAHAT NG CHANNELS MO NA NARITO
+                this.PH_CHANNELS_DATA = [
+                    {
+                        "id": 0,
+                        "name": "KAPAMILYA SD",
+                        "url": "http://136.158.97.2:6610/001/2/ch00000090990000001248/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMApp6yQcv0eXOeLWPg38eVQ3syK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001545&contentid=ch00000000000000001545&videoid=ch00000090990000001248&recommendtype=0&userid=1939893849220&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=COJ0KA4VBZGXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20448120260101155240039866&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Entertainment",
+                        "category": "entertainment",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 1,
+                        "name": "TELERADYO",
+                        "url": "http://136.239.173.3:6610/001/2/ch00000090990000001249/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAr70JxlZHE85iqqUwY%2BlbxPsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001585&contentid=ch00000000000000001585&videoid=ch00000090990000001249&recommendtype=0&userid=1153314047374&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=N3KWA75YPNMXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20451420260101155240188205&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Radio",
+                        "category": "entertainment",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 2,
+                        "name": "ANC HD",
+                        "url": "http://136.239.158.18:6610/001/2/ch00000090990000001274/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMArDV011BfpAq1Gp53oE1jzo2%2FjHNuou2Jtxin49X3LQKw%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001693&contentid=ch00000000000000001693&videoid=ch00000090990000001274&recommendtype=0&userid=1652778683930&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=HRKWD59PEBJXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20451220260101155241052582&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "News",
+                        "category": "news",
+                        "logo": "",
+                        "quality": "HD"
+                    },
+                    {
+                        "id": 3,
+                        "name": "MYX PH",
+                        "url": "http://161.49.17.2:6610/001/2/ch00000090990000001252/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMApnsWBpPBgeEj%2FSfIRshYPE2%2FjHNuou2Jtxin49X3LQKw%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001673&contentid=ch00000000000000001673&videoid=ch00000090990000001252&recommendtype=0&userid=1373226745504&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=IPR0C7CNXRGXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20449220260101155240184175&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Music",
+                        "category": "entertainment",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 4,
+                        "name": "GMA",
+                        "url": "http://136.158.97.2:6610/001/2/ch00000090990000001093/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAoLvT86fM74ocVChyFS93HUsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001214&contentid=ch00000000000000001214&videoid=ch00000090990000001093&recommendtype=0&userid=1438418816418&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=BLJMICF8T5XXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20448620260101155237367179&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Entertainment",
+                        "category": "entertainment",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 5,
+                        "name": "GTV",
+                        "url": "http://136.239.173.10:6610/001/2/ch00000090990000001143/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMArwAtJC%2BsmBQ5ARU076BdkhsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001313&contentid=ch00000000000000001313&videoid=ch00000090990000001143&recommendtype=0&userid=1430687738767&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=VTF7PQ0PAOMXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20446820260101155238998726&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Entertainment",
+                        "category": "entertainment",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 6,
+                        "name": "TV5 HD",
+                        "url": "http://136.158.97.2:6610/001/2/ch00000090990000001088/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAoh0xOsaoSFLqA0PEh9gVjisyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001213&contentid=ch00000000000000001213&videoid=ch00000090990000001088&recommendtype=0&userid=1099183361159&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=ZRUDOFEVUJOXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20448320260101155237311409&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Entertainment",
+                        "category": "entertainment",
+                        "logo": "",
+                        "quality": "HD"
+                    },
+                    {
+                        "id": 7,
+                        "name": "A2Z",
+                        "url": "http://136.158.97.2:6610/001/2/ch00000090990000001087/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAqHRrK8UUahwItHhKpXgPXKsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001176&contentid=ch00000000000000001176&videoid=ch00000090990000001087&recommendtype=0&userid=1162684427362&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=8JVNIKBBFCRXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20449220260101155236184115&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Entertainment",
+                        "category": "entertainment",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 8,
+                        "name": "ONE SPORTS",
+                        "url": "http://136.158.97.2:6610/001/2/ch00000090990000001083/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMApiZhzOAmsfItUIS2UHXxD0syK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001173&contentid=ch00000000000000001173&videoid=ch00000090990000001083&recommendtype=0&userid=1071962425102&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=4H9039UO28ZXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20451820260101155236142588&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Sports",
+                        "category": "sports",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 9,
+                        "name": "CINEMA ONE",
+                        "url": "http://136.239.158.10:6610/001/2/ch00000090990000001283/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAr2cQyuTRlDkHeiqeVidUqqsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001548&contentid=ch00000000000000001548&videoid=ch00000090990000001283&recommendtype=0&userid=1481102669463&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=7TIMXILHNX5XXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20445520260101155240041967&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Movies",
+                        "category": "movies",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 10,
+                        "name": "HBO",
+                        "url": "http://136.158.97.2:6610/001/2/ch00000090990000001065/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAosKg8aLji3LHWqHUI%2FwQyJsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001085&contentid=ch00000000000000001085&videoid=ch00000090990000001065&recommendtype=0&userid=1368249806492&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=NJY3IWFAY6XXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20448820260101155236346387&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "Movies",
+                        "category": "movies",
+                        "logo": "",
+                        "quality": "SD"
+                    },
+                    {
+                        "id": 11,
+                        "name": "BBC NEWS",
+                        "url": "http://136.239.158.30:6610/001/2/ch00000090990000001144/manifest.mpd?AuthInfo=v87HD9rEhwHiAdYyrP20TsXah2%2FZLFNNIdWrVrXDMAoS213aSan0K8PDwf0g%2BPDMsyK4TH4mOENKJ45mwOyS0g%3D%3D&version=v1.0&BreakPoint=0&virtualDomain=001.live_hls.zte.com&programid=ch00000000000000001314&contentid=ch00000000000000001314&videoid=ch00000090990000001144&recommendtype=0&userid=1617976077926&boid=001&stbid=02%3A00%3A00%3A00%3A00%3A00&terminalflag=1&profilecode=&usersessionid=8D8KL1IJM8UXXX&NeedJITP=1&JITPMediaType=DASH&JITPDRMType=NO&IASHttpSessionId=RR20451420260101155238188159&ispcode=55",
+                        "drm": "https://ottmdrm.comclark.com/widevine/",
+                        "group": "International",
+                        "category": "international",
+                        "logo": "",
+                        "quality": "SD"
+                    }
+                    // Dagdagan mo dito ang iba pang channels kung gusto mo
+                ];
+                
                 this.initializeApp();
             }
             
@@ -834,6 +948,7 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 this.initializePlayer();
                 this.setupEventListeners();
                 this.updateFavoritesUI();
+                this.updateChannelCount();
             }
             
             initializePlayer() {
@@ -841,29 +956,37 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 if (shaka.Player.isBrowserSupported()) {
                     this.player = new shaka.Player(document.getElementById('video'));
                     
+                    // Default configuration
                     this.player.configure({
                         streaming: {
                             bufferingGoal: 30,
-                            rebufferingGoal: 2
+                            rebufferingGoal: 2,
+                            bufferBehind: 30
                         }
                     });
                     
                     this.player.addEventListener('loading', () => {
                         this.showLoading(true);
                         this.updateChannelStatus('Loading...');
+                        document.getElementById('connection-status').textContent = 'Loading...';
                     });
                     
                     this.player.addEventListener('loaded', () => {
                         this.showLoading(false);
                         this.updateChannelStatus('Playing');
+                        document.getElementById('connection-status').textContent = 'DRM: Widevine';
                         this.showStatsPanel(true);
+                    });
+                    
+                    this.player.addEventListener('buffering', (event) => {
+                        this.updateChannelStatus('Buffering...');
                     });
                     
                     this.player.addEventListener('error', (error) => {
                         this.showLoading(false);
                         this.updateChannelStatus('Error');
+                        document.getElementById('connection-status').textContent = 'Error';
                         this.showError(`Error: ${error.code}`);
-                        console.error('Shaka Player error:', error);
                     });
                     
                 } else {
@@ -871,142 +994,74 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 }
             }
             
-            // FIXED PARSING FOR YOUR M3U FORMAT
-            parseM3U(data) {
-                const lines = data.split('\n');
-                const channels = [];
-                let currentChannel = {};
-                
-                console.log('Parsing M3U with', lines.length, 'lines');
-                
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    
-                    if (line.startsWith('#EXTM3U')) {
-                        continue;
-                    }
-                    
-                    // Check for KODIPROP lines (license info)
-                    if (line.startsWith('#KODIPROP:')) {
-                        const prop = line.substring(10);
-                        if (prop.startsWith('inputstream.adaptive.license_type=')) {
-                            currentChannel.licenseType = prop.split('=')[1];
-                        } 
-                        else if (prop.startsWith('inputstream.adaptive.license_key=')) {
-                            currentChannel.licenseKey = prop.split('=')[1];
-                        }
-                        continue;
-                    }
-                    
-                    // Check for EXTINF line
-                    if (line.startsWith('#EXTINF:')) {
-                        // Extract channel name
-                        const match = line.match(/^#EXTINF:.*?,(.+)$/);
-                        if (match) {
-                            currentChannel.name = match[1].trim();
-                        }
-                        continue;
-                    }
-                    
-                    // Check for URL line
-                    if (line.startsWith('http') && line.includes('manifest.mpd')) {
-                        currentChannel.url = line;
-                        currentChannel.group = 'DASH Channels';
-                        
-                        // Add channel to list
-                        if (currentChannel.name && currentChannel.url) {
-                            channels.push({
-                                ...currentChannel,
-                                id: channels.length,
-                                logo: ''
-                            });
-                            console.log('Added channel:', currentChannel.name);
-                        }
-                        
-                        // Reset for next channel
-                        currentChannel = {};
-                        continue;
-                    }
-                }
-                
-                console.log('Parsed', channels.length, 'channels');
-                return channels;
-            }
-            
-            // NEW: Load YOUR M3U playlist
-            loadYourM3U() {
-                this.showToast('Loading your M3U playlist...', 'info');
-                this.showLoading(true);
-                
+            // Load Philippine Channels
+            loadPhilippineChannels() {
                 try {
-                    // Use the M3U content you provided
-                    this.channels = this.parseM3U(this.YOUR_M3U_CONTENT);
+                    this.showToast('Loading Philippine channels...', 'info', 3000);
+                    this.showLoading(true);
                     
-                    if (this.channels.length === 0) {
-                        this.showError('No channels found in M3U. Using demo channels.');
-                        this.loadDemoChannels();
-                        return;
-                    }
+                    // Directly use the channels data
+                    this.channels = this.PH_CHANNELS_DATA.map(channel => ({
+                        ...channel,
+                        // Add DRM license type
+                        licenseType: 'com.widevine.alpha',
+                        licenseKey: channel.drm
+                    }));
                     
-                    this.extractCategories();
+                    this.categorizeChannels();
                     this.updateChannelsGrid();
+                    this.updateChannelCount();
                     
-                    // Auto-play first channel
-                    setTimeout(() => {
-                        if (this.channels.length > 0) {
+                    if (this.channels.length > 0) {
+                        // Auto-play first channel
+                        setTimeout(() => {
                             this.playChannel(0);
-                            this.showToast(`Loaded ${this.channels.length} channels from your M3U`, 'success');
-                        }
-                    }, 500);
+                            this.showToast(`Loaded ${this.channels.length} Philippine channels`, 'success', 3000);
+                        }, 500);
+                    }
                     
                 } catch (error) {
-                    console.error('Error loading M3U:', error);
-                    this.showError('Error parsing M3U. Using demo channels.');
+                    console.error('Error loading PH channels:', error);
+                    this.showError('Failed to load channels. Loading demo channels instead.');
                     this.loadDemoChannels();
-                    
                 } finally {
                     this.showLoading(false);
                 }
             }
             
-            // NEW: Load from textarea
-            loadDirectM3U() {
-                const m3uText = document.getElementById('m3u-textarea').value;
-                if (!m3uText || !m3uText.includes('#EXTM3U')) {
-                    this.showError('Please paste valid M3U content');
-                    return;
-                }
+            categorizeChannels() {
+                // Initialize categories
+                this.categories = {
+                    'all': this.channels,
+                    'favorites': this.channels.filter(channel => this.favorites.includes(channel.id)),
+                    'entertainment': [],
+                    'news': [],
+                    'sports': [],
+                    'movies': [],
+                    'international': []
+                };
                 
-                this.showToast('Loading pasted M3U...', 'info');
-                this.showLoading(true);
-                
-                try {
-                    this.channels = this.parseM3U(m3uText);
-                    
-                    if (this.channels.length === 0) {
-                        this.showError('No valid channels found. Check your M3U format.');
-                        return;
+                // Categorize each channel
+                this.channels.forEach(channel => {
+                    if (channel.category === 'entertainment') {
+                        this.categories.entertainment.push(channel);
+                    } else if (channel.category === 'news') {
+                        this.categories.news.push(channel);
+                    } else if (channel.category === 'sports') {
+                        this.categories.sports.push(channel);
+                    } else if (channel.category === 'movies') {
+                        this.categories.movies.push(channel);
+                    } else if (channel.category === 'international') {
+                        this.categories.international.push(channel);
                     }
-                    
-                    this.extractCategories();
-                    this.updateChannelsGrid();
-                    this.hideSettings();
-                    
-                    // Auto-play first channel
-                    setTimeout(() => {
-                        if (this.channels.length > 0) {
-                            this.playChannel(0);
-                            this.showToast(`Loaded ${this.channels.length} channels`, 'success');
-                        }
-                    }, 500);
-                    
-                } catch (error) {
-                    console.error('Error loading M3U:', error);
-                    this.showError('Error parsing M3U: ' + error.message);
-                    
-                } finally {
-                    this.showLoading(false);
-                }
+                });
+                
+                // Also group by network
+                this.channels.forEach(channel => {
+                    if (channel.group && !this.categories[channel.group]) {
+                        this.categories[channel.group] = this.channels.filter(c => c.group === channel.group);
+                    }
+                });
             }
             
             loadDemoChannels() {
@@ -1016,120 +1071,37 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                         name: 'Tears of Steel (Demo)',
                         url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
                         group: 'Demo',
+                        category: 'entertainment',
                         logo: '',
-                        licenseType: null,
-                        licenseKey: null
+                        quality: 'HD'
                     },
                     {
                         id: 1,
                         name: 'Big Buck Bunny',
                         url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
                         group: 'Demo',
+                        category: 'entertainment',
                         logo: '',
-                        licenseType: null,
-                        licenseKey: null
+                        quality: 'HD'
                     },
                     {
                         id: 2,
-                        name: 'Sintel (Demo DASH)',
+                        name: 'Sintel (Demo)',
                         url: 'https://dash.akamaized.net/dash264/TestCases/1c/qualcomm/1/MultiRate.mpd',
                         group: 'Demo',
+                        category: 'movies',
                         logo: '',
-                        licenseType: null,
-                        licenseKey: null
+                        quality: 'HD'
                     }
                 ];
                 
-                this.extractCategories();
+                this.categorizeChannels();
                 this.updateChannelsGrid();
-                this.showToast('Loaded demo channels', 'success');
+                this.updateChannelCount();
                 
                 if (this.channels.length > 0) {
                     this.playChannel(0);
                 }
-            }
-            
-            loadProviderPreset(provider) {
-                const providerChannels = {
-                    cignal: [
-                        {
-                            id: 0,
-                            name: 'Cignal TV Channel 1',
-                            url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
-                            group: 'Cignal',
-                            logo: '',
-                            licenseType: null,
-                            licenseKey: null
-                        }
-                    ],
-                    converge: [
-                        {
-                            id: 0,
-                            name: 'Converge TV 1',
-                            url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                            group: 'Converge',
-                            logo: '',
-                            licenseType: null,
-                            licenseKey: null
-                        }
-                    ]
-                };
-                
-                this.channels = providerChannels[provider] || [];
-                this.extractCategories();
-                this.updateChannelsGrid();
-                
-                if (this.channels.length > 0) {
-                    this.playChannel(0);
-                    this.showToast(`Loaded ${provider.toUpperCase()} channels`, 'success');
-                }
-            }
-            
-            extractCategories() {
-                this.categories = {
-                    'all': this.channels,
-                    'favorites': this.channels.filter(channel => this.favorites.includes(channel.id))
-                };
-                
-                this.channels.forEach(channel => {
-                    if (channel.group && !this.categories[channel.group]) {
-                        this.categories[channel.group] = this.channels.filter(c => c.group === channel.group);
-                    }
-                });
-                
-                this.updateCategoryTabs();
-            }
-            
-            updateCategoryTabs() {
-                const tabsContainer = document.getElementById('category-tabs');
-                
-                // Remove existing tabs (keep All and Favorites)
-                const existingTabs = Array.from(tabsContainer.querySelectorAll('.category-tab'));
-                existingTabs.forEach(tab => {
-                    if (!['all', 'favorites'].includes(tab.dataset.category)) {
-                        tab.remove();
-                    }
-                });
-                
-                // Add category tabs
-                Object.keys(this.categories).forEach(category => {
-                    if (category !== 'all' && category !== 'favorites') {
-                        const tab = document.createElement('button');
-                        tab.className = 'category-tab';
-                        tab.textContent = category;
-                        tab.dataset.category = category;
-                        tab.addEventListener('click', () => this.switchCategory(category));
-                        tabsContainer.appendChild(tab);
-                    }
-                });
-            }
-            
-            switchCategory(category) {
-                this.currentCategory = category;
-                document.querySelectorAll('.category-tab').forEach(tab => {
-                    tab.classList.toggle('active', tab.dataset.category === category);
-                });
-                this.updateChannelsGrid();
             }
             
             updateChannelsGrid() {
@@ -1142,7 +1114,7 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                     grid.innerHTML = `
                         <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #888; font-size: 12px;">
                             <i class="fas fa-tv" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
-                            <p>${this.currentCategory === 'favorites' ? 'No favorite channels yet' : 'No channels available'}</p>
+                            <p>${this.currentCategory === 'favorites' ? 'No favorite channels yet' : 'No channels available in this category'}</p>
                         </div>
                     `;
                     return;
@@ -1151,18 +1123,17 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 channelsToShow.forEach(channel => {
                     const isFavorite = this.favorites.includes(channel.id);
                     const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
+                    const hasDRM = channel.drm && channel.drm.includes('widevine');
                     
                     const card = document.createElement('div');
                     card.className = 'channel-card';
                     if (isActive) card.classList.add('active');
                     
                     const initial = channel.name.charAt(0).toUpperCase();
-                    const colors = ['#61dafb', '#4fa3c4', '#FF6B35', '#00A8FF'];
+                    const colors = ['#61dafb', '#4fa3c4', '#FF6B35', '#00A8FF', '#3CB371'];
                     const colorIndex = channel.id % colors.length;
-                    
-                    // Add DASH icon for .mpd streams
-                    const isDash = channel.url && channel.url.includes('.mpd');
-                    const streamType = isDash ? ' (DASH)' : '';
+                    const qualityColor = channel.quality === 'HD' ? '#FF6B35' : 
+                                        channel.quality === 'SD' ? '#61dafb' : '#3CB371';
                     
                     card.innerHTML = `
                         <div class="channel-logo">
@@ -1173,10 +1144,11 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                                    </div>`
                             }
                         </div>
-                        <div class="channel-name">${channel.name}${streamType}</div>
+                        <div class="channel-name">${channel.name}</div>
                         <div class="channel-group">${channel.group || 'General'}</div>
-                        ${isDash ? '<div style="position: absolute; top: 5px; left: 5px; background: #ff6b35; color: white; padding: 2px 4px; border-radius: 3px; font-size: 8px; font-weight: bold;">DASH</div>' : ''}
+                        ${channel.quality ? `<div class="quality-badge" style="background: ${qualityColor}">${channel.quality}</div>` : ''}
                         ${isFavorite ? '<i class="fas fa-star channel-fav-icon"></i>' : ''}
+                        ${hasDRM ? '<i class="fas fa-shield-alt channel-drm-icon" title="DRM Protected"></i>' : ''}
                     `;
                     
                     card.addEventListener('click', () => this.playChannel(channel.id));
@@ -1191,31 +1163,66 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 this.currentChannelIndex = channelIndex;
                 const channel = this.channels[channelIndex];
                 
-                console.log('Playing channel:', channel);
-                
                 try {
                     this.showLoading(true);
-                    this.updateChannelStatus('Loading...');
+                    this.updateChannelStatus('Connecting...');
+                    document.getElementById('connection-status').textContent = 'Connecting...';
                     
-                    // Configure DRM for Widevine
+                    // Advanced DRM Configuration for Philippine channels
                     const config = {
                         drm: {},
                         streaming: {
-                            bufferingGoal: 30,
-                            rebufferingGoal: 2
+                            bufferingGoal: parseInt(document.getElementById('buffer-size').value) || 30,
+                            rebufferingGoal: 2,
+                            bufferBehind: 30,
+                            lowLatencyMode: false,
+                            retryParameters: {
+                                maxAttempts: 5,
+                                baseDelay: 1000,
+                                backoffFactor: 2,
+                                fuzzFactor: 0.5
+                            }
+                        },
+                        manifest: {
+                            dash: {
+                                ignoreSuggestedPresentationDelay: true,
+                                autoCorrectDrift: true
+                            }
                         }
                     };
                     
-                    // Add Widevine license server if available
-                    if (channel.licenseType === 'com.widevine.alpha' && channel.licenseKey) {
+                    // Configure Widevine DRM for Philippine channels
+                    if (channel.drm && channel.drm.includes('widevine')) {
+                        console.log('Configuring Widevine DRM for channel:', channel.name);
+                        
                         config.drm.servers = {
-                            'com.widevine.alpha': channel.licenseKey
+                            'com.widevine.alpha': channel.drm
                         };
-                        console.log('Configuring Widevine DRM:', channel.licenseKey);
+                        
+                        config.drm.advanced = {
+                            'com.widevine.alpha': {
+                                videoRobustness: 'SW_SECURE_CRYPTO',
+                                audioRobustness: 'SW_SECURE_CRYPTO',
+                                distinctiveIdentifier: 'optional',
+                                persistentState: 'optional'
+                            }
+                        };
+                        
+                        // Add license request headers if needed
+                        config.drm.initDataTransform = (initData, initDataType, drmInfo) => {
+                            if (initDataType === 'cenc') {
+                                console.log('Processing CENC init data for Widevine');
+                            }
+                            return initData;
+                        };
+                        
+                        document.getElementById('connection-status').textContent = 'DRM: Widevine Active';
                     }
                     
                     this.player.configure(config);
                     
+                    // Play the stream
+                    console.log('Loading stream URL:', channel.url.substring(0, 100) + '...');
                     await this.player.load(channel.url);
                     
                     this.updateChannelInfo(channel.name);
@@ -1223,24 +1230,29 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                     this.updateFavoriteButton();
                     this.updateChannelsGrid();
                     
-                    this.showToast(`Playing: ${channel.name}`, 'success');
+                    this.showToast(`Now Playing: ${channel.name}`, 'success');
                     
                 } catch (error) {
                     console.error('Error playing channel:', error);
-                    this.showError(`Error playing channel: ${error.message}`);
-                    this.updateChannelStatus('Error');
                     
-                    // Try fallback if DRM fails
-                    if (error.code === 6000 || error.code === 6001) {
-                        this.showToast('DRM issue. Trying without license...', 'warning');
+                    // Try fallback approaches
+                    if (error.code === shaka.util.Error.Code.LICENSE_REQUEST_FAILED) {
+                        this.showError('DRM license failed. Trying alternative method...');
+                        document.getElementById('connection-status').textContent = 'DRM: Failed - Trying alternative';
+                        
+                        // Try without DRM configuration
                         try {
-                            const fallbackConfig = { drm: {} };
-                            this.player.configure(fallbackConfig);
+                            this.player.configure({ drm: {} });
                             await this.player.load(channel.url);
+                            this.showToast('Playing without DRM protection', 'warning');
+                            document.getElementById('connection-status').textContent = 'DRM: Not Protected';
                         } catch (fallbackError) {
-                            console.error('Fallback also failed:', fallbackError);
+                            this.showError('Cannot play this channel. Please try another.');
                         }
+                    } else {
+                        this.showError('Error: ' + (error.message || error.code));
                     }
+                    this.updateChannelStatus('Error');
                 } finally {
                     this.showLoading(false);
                 }
@@ -1274,9 +1286,7 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 const nextIndexInCategory = (currentIndexInCategory + 1) % channels.length;
                 const nextChannel = channels[nextIndexInCategory];
                 
-                if (nextChannel) {
-                    this.playChannel(nextChannel.id);
-                }
+                this.playChannel(nextChannel.id);
             }
             
             prevChannel() {
@@ -1288,9 +1298,15 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 const prevIndexInCategory = (currentIndexInCategory - 1 + channels.length) % channels.length;
                 const prevChannel = channels[prevIndexInCategory];
                 
-                if (prevChannel) {
-                    this.playChannel(prevChannel.id);
-                }
+                this.playChannel(prevChannel.id);
+            }
+            
+            switchCategory(category) {
+                this.currentCategory = category;
+                document.querySelectorAll('.category-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.category === category);
+                });
+                this.updateChannelsGrid();
             }
             
             refreshBrowser() {
@@ -1305,21 +1321,25 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 document.getElementById('prev-channel').addEventListener('click', () => this.prevChannel());
                 document.getElementById('next-channel').addEventListener('click', () => this.nextChannel());
                 
-                // MODIFIED: Load YOUR M3U button
-                document.getElementById('load-m3u-btn').addEventListener('click', () => this.loadYourM3U());
-                
-                // MODIFIED: Refresh button
+                // Provider buttons
+                document.getElementById('ph-channels-btn').addEventListener('click', () => this.loadPhilippineChannels());
                 document.getElementById('refresh-btn').addEventListener('click', () => this.refreshBrowser());
                 
-                // Direct M3U load
-                document.getElementById('load-direct-m3u-btn').addEventListener('click', () => this.loadDirectM3U());
-                
-                // Demo channels button
-                document.getElementById('load-demo-channels-btn').addEventListener('click', () => this.loadDemoChannels());
-                
                 // Settings presets
-                document.getElementById('load-cignal-preset').addEventListener('click', () => this.loadProviderPreset('cignal'));
-                document.getElementById('load-converge-preset').addEventListener('click', () => this.loadProviderPreset('converge'));
+                document.getElementById('load-ph-channels-preset').addEventListener('click', () => this.loadPhilippineChannels());
+                document.getElementById('load-demo-preset').addEventListener('click', () => this.loadDemoChannels());
+                
+                // Buffer size
+                document.getElementById('buffer-size').addEventListener('change', (e) => {
+                    const bufferSize = parseInt(e.target.value);
+                    this.player.configure({
+                        streaming: {
+                            bufferingGoal: bufferSize,
+                            rebufferingGoal: 2
+                        }
+                    });
+                    this.showToast(`Buffer size set to ${bufferSize} seconds`);
+                });
                 
                 // Channel list
                 document.getElementById('channel-list-btn').addEventListener('click', () => this.showChannelList());
@@ -1339,10 +1359,7 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 document.getElementById('maximize-btn').addEventListener('click', () => this.toggleFullscreen());
                 
                 // Reload playlist
-                document.getElementById('reload-playlist-btn').addEventListener('click', () => this.loadYourM3U());
-                
-                // Demo button in grid
-                document.getElementById('load-demo-btn')?.addEventListener('click', () => this.loadYourM3U());
+                document.getElementById('reload-playlist-btn').addEventListener('click', () => this.loadPhilippineChannels());
                 
                 // Category tabs
                 document.querySelectorAll('.category-tab').forEach(tab => {
@@ -1351,13 +1368,11 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
             }
             
             showChannelList() {
-                if (this.channels.length === 0) {
-                    this.showToast('No channels loaded yet');
-                    return;
-                }
                 this.updateChannelList();
                 document.getElementById('channel-overlay').style.display = 'flex';
+                document.getElementById('channel-header').innerHTML = `<h3>All Channels (${this.channels.length})</h3><button id="close-channels">Close</button>`;
                 document.getElementById('channel-search').focus();
+                document.getElementById('close-channels').addEventListener('click', () => this.hideChannelList());
             }
             
             updateChannelList() {
@@ -1367,26 +1382,29 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 this.channels.forEach(channel => {
                     const isFavorite = this.favorites.includes(channel.id);
                     const isActive = channel.id === this.channels[this.currentChannelIndex]?.id;
+                    const hasDRM = channel.drm && channel.drm.includes('widevine');
                     
                     const item = document.createElement('div');
                     item.className = 'channel-item';
                     if (isActive) item.classList.add('active');
                     
                     const initial = channel.name.charAt(0).toUpperCase();
-                    const isDash = channel.url && channel.url.includes('.mpd');
+                    const colors = ['#61dafb', '#4fa3c4', '#FF6B35', '#00A8FF'];
+                    const colorIndex = channel.id % colors.length;
                     
                     item.innerHTML = `
                         <div style="width: 40px; height: 40px; border-radius: 6px; margin-right: 10px; 
-                                    background: ${channel.logo ? `url('${channel.logo}')` : '#61dafb'}; 
+                                    background: ${channel.logo ? `url('${channel.logo}')` : colors[colorIndex]}; 
                                     background-size: contain; background-position: center; background-repeat: no-repeat;
                                     display: flex; align-items: center; justify-content: center;">
                             ${!channel.logo ? `<span style="font-weight: bold; font-size: 16px; color: #000;">${initial}</span>` : ''}
                         </div>
                         <div style="flex: 1;">
-                            <div style="font-weight: bold; font-size: 13px;">${channel.name} ${isDash ? ' (DASH)' : ''}</div>
-                            <div style="font-size: 11px; color: #aaa;">${channel.group || 'General'}</div>
+                            <div style="font-weight: bold; font-size: 13px;">${channel.name}</div>
+                            <div style="font-size: 11px; color: #aaa;">${channel.group || 'General'} ${channel.quality ? `• ${channel.quality}` : ''}</div>
                         </div>
                         ${isFavorite ? '<i class="fas fa-star" style="color: #ff6b35; margin-left: 8px;"></i>' : ''}
+                        ${hasDRM ? '<i class="fas fa-shield-alt" style="color: #61dafb; margin-left: 8px;" title="DRM Protected"></i>' : ''}
                     `;
                     
                     item.addEventListener('click', () => {
@@ -1419,6 +1437,10 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
             
             hideSettings() {
                 document.getElementById('settings-panel').classList.remove('open');
+            }
+            
+            updateChannelCount() {
+                document.getElementById('channel-count').textContent = this.channels.length;
             }
             
             showLoading(show) {
@@ -1458,9 +1480,6 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
                 const toast = document.getElementById('toast');
                 toast.textContent = message;
                 toast.className = `toast ${type}`;
-                toast.style.background = type === 'error' ? '#ff4444' : 
-                                        type === 'warning' ? '#ffa500' : 
-                                        type === 'info' ? '#61dafb' : '#4CAF50';
                 toast.classList.add('show');
                 
                 setTimeout(() => {
@@ -1492,14 +1511,30 @@ https://136.239.159.20:6610/001/2/ch00000090990000001079/manifest.mpd?AuthInfo=v
         
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
-            window.iptvApp = new WorkingIPTVApp();
+            window.iptvApp = new PhilippineIPTVApp();
             
-            // Add your M3U to textarea by default
+            // Auto-show welcome message
             setTimeout(() => {
-                const textarea = document.getElementById('m3u-textarea');
-                if (textarea) {
-                    textarea.value = window.iptvApp.YOUR_M3U_CONTENT;
-                }
+                const welcomeToast = document.createElement('div');
+                welcomeToast.className = 'toast success';
+                welcomeToast.textContent = 'Philippine IPTV Player Ready! Click "PH CHANNELS" to start';
+                welcomeToast.style.position = 'fixed';
+                welcomeToast.style.bottom = '20px';
+                welcomeToast.style.left = '50%';
+                welcomeToast.style.transform = 'translateX(-50%)';
+                welcomeToast.style.zIndex = '9999';
+                document.body.appendChild(welcomeToast);
+                
+                setTimeout(() => {
+                    welcomeToast.classList.add('show');
+                }, 100);
+                
+                setTimeout(() => {
+                    welcomeToast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(welcomeToast);
+                    }, 300);
+                }, 5000);
             }, 1000);
         });
     </script>
