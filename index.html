@@ -84,7 +84,7 @@
             padding: 0;
         }
         #channel-info { 
-            padding: 8px 15px; 
+            padding: 10px 15px; 
             background: #3c4043; 
             border-bottom: 1px solid #444; 
             flex-shrink: 0; 
@@ -96,7 +96,7 @@
         #current-channel { 
             font-size: 16px; 
             font-weight: bold; 
-            margin-bottom: 2px; 
+            margin-bottom: 3px; 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -119,22 +119,24 @@
             flex-shrink: 0;
         }
         .favorite-btn.active { color: #ff6b35; }
+        
+        /* PROVIDER BUTTONS - LARGER */
         #provider-buttons { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
-            gap: 6px; 
-            padding: 8px; 
+            gap: 8px; 
+            padding: 10px; 
             flex-shrink: 0; 
             background: #252525;
             border-bottom: 1px solid #3a3a3a;
         }
         .provider-btn { 
-            padding: 12px; 
+            padding: 14px; 
             background: linear-gradient(135deg, #ff6b35, #ff8e53); 
             color: white; 
             border: none; 
             border-radius: 8px; 
-            font-size: 14px; 
+            font-size: 15px; 
             font-weight: bold; 
             cursor: pointer; 
             display: flex; 
@@ -149,9 +151,9 @@
         }
         .provider-btn:active { transform: scale(0.98); }
         
-        /* RECENT CHANNELS - COMPACT */
+        /* RECENT CHANNELS - LARGER */
         #recent-channels { 
-            padding: 6px 8px; 
+            padding: 8px; 
             border-bottom: 1px solid #3a3a3a; 
             background: #252525;
             flex-shrink: 0;
@@ -160,125 +162,140 @@
             flex-wrap: nowrap;
             overflow-x: auto;
             overflow-y: hidden;
-            min-height: 36px;
+            min-height: 44px;
         }
         #recent-channels::-webkit-scrollbar {
-            height: 3px;
+            height: 4px;
         }
         #recent-channels::-webkit-scrollbar-thumb {
             background: #61dafb;
             border-radius: 3px;
         }
         .recent-label {
-            font-size: 11px;
+            font-size: 13px;
             color: #aaa;
-            margin-right: 8px;
+            margin-right: 10px;
             white-space: nowrap;
             flex-shrink: 0;
+            font-weight: bold;
         }
         .recent-channel { 
             display: inline-flex; 
             align-items: center; 
-            padding: 3px 8px; 
-            margin-right: 5px; 
+            padding: 5px 10px; 
+            margin-right: 6px; 
             background: #3c4043; 
             border-radius: 12px; 
-            font-size: 11px; 
+            font-size: 12px; 
             cursor: pointer;
             white-space: nowrap;
             flex-shrink: 0;
+            border: 1px solid #444;
         }
+        .recent-channel:active { background: #61dafb; color: #000; }
         .recent-channel img {
-            width: 14px;
-            height: 14px;
-            border-radius: 2px;
-            margin-right: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 6px;
             flex-shrink: 0;
         }
         
-        /* QUICK CHANNELS - COMPACT GRID */
+        /* QUICK CHANNELS - 4 COLUMNS */
         #quick-channels { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 8px; 
+            padding: 10px; 
             display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 6px; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 8px; 
             max-height: none; 
         }
         .quick-channel { 
             display: flex; 
-            align-items: center; 
-            padding: 6px 8px; 
+            flex-direction: column;
+            align-items: center;
+            padding: 8px; 
             background: #3c4043; 
-            border-radius: 6px; 
+            border-radius: 8px; 
             cursor: pointer; 
-            min-height: 36px; 
-            position: relative; 
-            transition: background-color 0.2s;
+            min-height: 70px;
+            transition: all 0.2s;
+            border: 1px solid #444;
         }
-        .quick-channel:active { background: #61dafb; color: #000; }
+        .quick-channel:active { 
+            background: #61dafb; 
+            color: #000; 
+            transform: scale(0.95);
+        }
         .quick-channel.active { 
             background: #4fa3c4; 
-            border-left: 3px solid #ff6b35;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 0 10px rgba(255,107,53,0.5);
         }
         .channel-logo { 
-            width: 24px; 
-            height: 24px; 
-            margin-right: 8px; 
-            border-radius: 4px; 
+            width: 32px; 
+            height: 32px; 
+            margin-bottom: 6px; 
+            border-radius: 6px; 
             object-fit: cover; 
             flex-shrink: 0; 
+            border: 2px solid #555;
         }
         .channel-name { 
-            font-size: 12px; 
-            flex: 1; 
+            font-size: 11px; 
+            text-align: center;
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis; 
+            width: 100%;
+            font-weight: bold;
         }
         .channel-fav { 
             color: #ff6b35; 
             font-size: 10px; 
-            margin-left: 4px; 
-            flex-shrink: 0;
+            margin-top: 4px;
         }
-        .channel-number {
+        .channel-lock {
+            color: #61dafb;
             font-size: 10px;
-            color: #aaa;
-            background: #2a2a2a;
-            padding: 1px 4px;
-            border-radius: 3px;
-            margin-right: 4px;
-            font-weight: bold;
+            margin-top: 4px;
         }
         
-        /* BOTTOM ACTIONS - COMPACT */
+        /* BOTTOM ACTIONS - LARGER FOR MOBILE */
         .bottom-actions { 
             display: flex; 
-            gap: 6px; 
-            padding: 8px; 
+            gap: 8px; 
+            padding: 12px; 
             flex-shrink: 0; 
             background: #252525;
-            border-top: 1px solid #3a3a3a;
+            border-top: 2px solid #3a3a3a;
         }
         .action-btn {
             flex: 1;
-            padding: 10px;
+            padding: 12px 8px;
             background: #3c4043;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 13px;
+            font-weight: bold;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 6px;
+            border: 1px solid #555;
+            transition: all 0.2s;
         }
         .action-btn:active {
             background: #61dafb;
             color: #000;
+            transform: scale(0.95);
+        }
+        .action-btn i {
+            font-size: 18px;
         }
         
         /* VOLUME CONTROL */
@@ -286,8 +303,8 @@
             position: absolute; 
             bottom: 20px; 
             right: 20px; 
-            background: rgba(0,0,0,0.7); 
-            padding: 10px; 
+            background: rgba(0,0,0,0.8); 
+            padding: 12px; 
             border-radius: 20px; 
             display: none; 
             flex-direction: column; 
@@ -295,20 +312,21 @@
             z-index: 20; 
         }
         #volume-slider { 
-            width: 100px; 
-            height: 5px; 
+            width: 120px; 
+            height: 6px; 
             -webkit-appearance: none; 
             background: #555; 
             border-radius: 5px; 
-            margin: 10px 0; 
+            margin: 12px 0; 
         }
         #volume-slider::-webkit-slider-thumb { 
             -webkit-appearance: none; 
-            width: 15px; 
-            height: 15px; 
+            width: 18px; 
+            height: 18px; 
             border-radius: 50%; 
             background: #61dafb; 
             cursor: pointer; 
+            border: 2px solid white;
         }
         
         /* FULLSCREEN */
@@ -336,7 +354,7 @@
             flex-direction: column; 
         }
         #channel-header { 
-            padding: 12px 15px; 
+            padding: 15px; 
             background: #2d2d2d; 
             display: flex; 
             justify-content: space-between; 
@@ -347,27 +365,33 @@
             background: #ff4444; 
             color: white; 
             border: none; 
-            padding: 6px 12px; 
-            border-radius: 6px; 
+            padding: 8px 15px; 
+            border-radius: 8px; 
             cursor: pointer; 
-            font-size: 13px; 
+            font-size: 14px; 
+            font-weight: bold;
         }
+        #close-channels:active { background: #ff2222; }
         #channels-list { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 8px; 
+            padding: 10px; 
         }
         .channel-item { 
             display: flex; 
             align-items: center; 
-            padding: 8px; 
-            margin-bottom: 5px; 
+            padding: 12px; 
+            margin-bottom: 8px; 
             background: #3c4043; 
-            border-radius: 6px; 
+            border-radius: 8px; 
             cursor: pointer; 
+            border: 1px solid #444;
         }
         .channel-item:active { background: #61dafb; color: #000; }
-        .channel-item.active { background: #4fa3c4; }
+        .channel-item.active { 
+            background: #4fa3c4; 
+            border: 2px solid #ff6b35;
+        }
         
         /* TOAST */
         .toast { 
@@ -377,15 +401,17 @@
             transform: translateX(-50%); 
             background: #333; 
             color: white; 
-            padding: 10px 16px; 
-            border-radius: 6px; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
             z-index: 2000; 
             animation: fadeInOut 3s ease-in-out; 
-            font-size: 13px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         @keyframes fadeInOut { 
-            0%,100%{opacity:0;} 
-            10%,90%{opacity:1;} 
+            0%,100%{opacity:0; transform: translateX(-50%) translateY(-20px);} 
+            10%,90%{opacity:1; transform: translateX(-50%) translateY(0);} 
         }
         
         /* LOADING */
@@ -395,32 +421,34 @@
             left:50%; 
             transform: translate(-50%,-50%); 
             color:#61dafb; 
-            font-size:14px; 
+            font-size:16px;
+            font-weight: bold;
         }
         
         /* SEARCH */
         #channel-search { 
             width:100%; 
-            padding:8px; 
-            margin-bottom:8px; 
+            padding:12px; 
+            margin:10px; 
             background:#1a1a1a; 
-            border:1px solid #444; 
-            border-radius:6px; 
+            border:2px solid #444; 
+            border-radius:8px; 
             color:white; 
-            font-size:13px; 
+            font-size:14px;
+            font-weight: bold;
         }
         
-        /* SETTINGS */
+        /* SETTINGS PANEL - IMPROVED */
         #settings-panel { 
             position: fixed; 
             top:0; 
-            right:-300px; 
-            width:300px; 
+            right:-100%; 
+            width:100%; 
             height:100%; 
             background:#2d2d2d; 
             z-index:1002; 
             transition:right 0.3s ease; 
-            padding:15px; 
+            padding:20px; 
             overflow-y:auto; 
         }
         #settings-panel.open { right:0; }
@@ -428,45 +456,160 @@
             display:flex; 
             justify-content:space-between; 
             align-items:center; 
-            margin-bottom:15px; 
-            padding-bottom:10px; 
-            border-bottom:1px solid #444; 
+            margin-bottom:25px; 
+            padding-bottom:15px; 
+            border-bottom:2px solid #444; 
         }
-        .settings-option { margin-bottom:12px; }
+        .settings-header h3 {
+            font-size: 22px;
+            color: #61dafb;
+        }
+        .settings-option { 
+            margin-bottom:20px; 
+            padding: 15px;
+            background: #3c4043;
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
         .settings-label { 
             display:block; 
-            margin-bottom:4px; 
-            font-size:13px; 
+            margin-bottom:10px; 
+            font-size:16px; 
+            font-weight: bold;
+            color: #fff;
         }
         .settings-select { 
             width:100%; 
-            padding:6px; 
+            padding:12px; 
             background:#1a1a1a; 
-            border:1px solid #444; 
-            border-radius:4px; 
+            border:2px solid #444; 
+            border-radius:8px; 
             color:white; 
-            font-size:13px;
+            font-size:15px;
+            font-weight: bold;
+        }
+        .settings-select:focus {
+            border-color: #61dafb;
+            outline: none;
         }
         
         /* SCROLLBAR */
         ::-webkit-scrollbar {
-            width: 5px;
+            width: 8px;
         }
         ::-webkit-scrollbar-track {
             background: #252525;
         }
         ::-webkit-scrollbar-thumb {
             background: #61dafb;
-            border-radius: 3px;
+            border-radius: 4px;
         }
         
         /* LOADING CHANNELS */
         .loading-channels {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             color: #aaa;
-            font-size: 13px;
-            grid-column: 1 / span 2;
+            font-size: 16px;
+            grid-column: 1 / span 4;
+        }
+        
+        /* THEME STYLES */
+        body.theme-light {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        body.theme-light #app-container {
+            background: #fff;
+        }
+        body.theme-light #video-container {
+            background: #000;
+        }
+        body.theme-light #controls-container {
+            background: #f0f0f0;
+        }
+        body.theme-light #channel-info,
+        body.theme-light #provider-buttons,
+        body.theme-light #recent-channels,
+        body.theme-light .bottom-actions {
+            background: #e0e0e0;
+        }
+        body.theme-light .quick-channel,
+        body.theme-light .recent-channel,
+        body.theme-light .action-btn,
+        body.theme-light .channel-item {
+            background: #fff;
+            color: #333;
+            border-color: #ddd;
+        }
+        body.theme-light .settings-option {
+            background: #fff;
+            border-color: #ddd;
+        }
+        body.theme-light .settings-select {
+            background: #fff;
+            color: #333;
+            border-color: #ddd;
+        }
+        
+        body.theme-blue {
+            background-color: #0a192f;
+        }
+        body.theme-blue #app-container {
+            background: #112240;
+        }
+        body.theme-blue #controls-container {
+            background: #0a192f;
+        }
+        body.theme-blue #channel-info,
+        body.theme-blue #provider-buttons,
+        body.theme-blue #recent-channels,
+        body.theme-blue .bottom-actions {
+            background: #112240;
+        }
+        body.theme-blue .quick-channel,
+        body.theme-blue .recent-channel,
+        body.theme-blue .action-btn,
+        body.theme-blue .channel-item {
+            background: #1a365d;
+            border-color: #2d5280;
+        }
+        
+        /* RESPONSIVE FOR MOBILE */
+        @media (max-width: 480px) {
+            #quick-channels {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+                padding: 8px;
+            }
+            .quick-channel {
+                min-height: 65px;
+                padding: 6px;
+            }
+            .channel-logo {
+                width: 28px;
+                height: 28px;
+            }
+            .channel-name {
+                font-size: 10px;
+            }
+            .bottom-actions {
+                padding: 10px;
+                gap: 6px;
+            }
+            .action-btn {
+                padding: 10px 6px;
+                font-size: 12px;
+            }
+            .action-btn i {
+                font-size: 16px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            #quick-channels {
+                grid-template-columns: repeat(5, 1fr);
+            }
         }
     </style>
 </head>
@@ -504,18 +647,28 @@
 
             <div id="quick-channels">
                 <!-- Channels will be loaded here -->
-                <div class="loading-channels">Loading channels...</div>
+                <div class="loading-channels">
+                    <i class="fas fa-spinner fa-spin"></i><br>
+                    Loading channels...
+                </div>
             </div>
 
             <div class="bottom-actions">
                 <button class="action-btn" id="all-channels-btn">
-                    <i class="fas fa-list"></i> All Channels
+                    <i class="fas fa-list"></i>
+                    <span>All</span>
                 </button>
                 <button class="action-btn" id="fav-channels-btn">
-                    <i class="fas fa-star"></i> Favorites
+                    <i class="fas fa-star"></i>
+                    <span>Favorites</span>
+                </button>
+                <button class="action-btn" id="refresh-btn">
+                    <i class="fas fa-sync"></i>
+                    <span>Refresh</span>
                 </button>
                 <button class="action-btn" id="settings-btn">
-                    <i class="fas fa-cog"></i> Settings
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
                 </button>
             </div>
         </div>
@@ -533,17 +686,17 @@
     <div id="settings-panel">
         <div class="settings-header">
             <h3>Settings</h3>
-            <button id="close-settings" style="background:none;border:none;color:white;font-size:18px;cursor:pointer">
+            <button id="close-settings" style="background:none;border:none;color:white;font-size:22px;cursor:pointer">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="settings-option">
             <label class="settings-label">Video Quality</label>
             <select class="settings-select" id="quality-select">
-                <option value="auto">Auto</option>
-                <option value="hd">HD</option>
-                <option value="sd">SD</option>
-                <option value="low">Low</option>
+                <option value="auto">Auto (Recommended)</option>
+                <option value="hd">High Definition (HD)</option>
+                <option value="sd">Standard Definition (SD)</option>
+                <option value="low">Low (Mobile Data)</option>
             </select>
         </div>
         <div class="settings-option">
@@ -559,24 +712,31 @@
         <div class="settings-option">
             <label class="settings-label">Theme</label>
             <select class="settings-select" id="theme-select">
-                <option value="dark">Dark</option>
+                <option value="dark">Dark (Default)</option>
                 <option value="light">Light</option>
                 <option value="blue">Blue</option>
             </select>
         </div>
         <div class="settings-option">
+            <label class="settings-label">Channel Layout</label>
+            <select class="settings-select" id="layout-select">
+                <option value="4col">4 Columns (Default)</option>
+                <option value="3col">3 Columns</option>
+                <option value="2col">2 Columns</option>
+                <option value="list">List View</option>
+            </select>
+        </div>
+        <div class="settings-option">
             <label class="settings-label">Parental Controls</label>
-            <button style="width:100%;padding:8px;background:#ff6b35;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px">
-                Enable PIN
+            <button id="parental-btn" style="width:100%;padding:12px;background:#ff6b35;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:bold">
+                <i class="fas fa-lock"></i> Enable PIN Protection
             </button>
         </div>
         <div class="settings-option">
-            <label class="settings-label">Channel Layout</label>
-            <select class="settings-select" id="layout-select">
-                <option value="compact">Compact (2 columns)</option>
-                <option value="list">List (1 column)</option>
-                <option value="grid">Grid (3 columns)</option>
-            </select>
+            <label class="settings-label">Clear Data</label>
+            <button id="clear-data-btn" style="width:100%;padding:12px;background:#ff4444;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:bold">
+                <i class="fas fa-trash"></i> Clear Cache & Favorites
+            </button>
         </div>
     </div>
 
@@ -586,29 +746,45 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script>
-        class CompactMobileIPTV {
+        class MobileIPTVPlayer {
             constructor() {
                 this.channels = [];
                 this.currentChannelIndex = 0;
                 this.player = null;
-                this.xmlepg = null;
                 this.isFullscreen = false;
                 this.favorites = JSON.parse(localStorage.getItem('iptv_favorites') || '[]');
                 this.recentChannels = JSON.parse(localStorage.getItem('iptv_recent') || '[]');
-                this.categories = {};
-                this.currentCategory = 'all';
-                this.currentLayout = localStorage.getItem('iptv_layout') || 'compact';
-                this.collapsedCategories = JSON.parse(localStorage.getItem('collapsed_categories') || '{}');
-
-                // Converge playlist
-                this.convergeLicense = "https://key.nathcreqtives.com/widevine/?deviceId=02:00:00:00:00:00";
+                this.currentProvider = 'cignal';
+                this.currentLayout = localStorage.getItem('iptv_layout') || '4col';
+                this.currentTheme = localStorage.getItem('iptv_theme') || 'dark';
+                
+                // Converge channels
                 this.convergeChannels = [
-                    { id: 'conv-1143', channelName: "GTV", tvgLogo: "https://ottepg8.comclark.com:8443/iptvepg/images/markurl/mark_1723126332757.png", manifestUrl: "https://converse.nathcreqtives.com/1143/manifest.mpd", drm: true },
-                    { id: 'conv-1088', channelName: "TV5", tvgLogo: "https://ottepg8.comclark.com:8443/iptvepg/images/markurl/mark_1723134335547.png", manifestUrl: "https://converse.nathcreqtives.com/1088/manifest.mpd", drm: true },
-                    { id: 'conv-1093', channelName: "GMA 7", tvgLogo: "https://ottepg8.comclark.com:8443/iptvepg/images/markurl/mark_1723126306082.png", manifestUrl: "https://converse.nathcreqtives.com/1093/manifest.mpd", drm: true }
+                    { 
+                        id: 'conv-1143', 
+                        channelName: "GTV", 
+                        tvgLogo: "https://ottepg8.comclark.com:8443/iptvepg/images/markurl/mark_1723126332757.png", 
+                        manifestUrl: "https://converse.nathcreqtives.com/1143/manifest.mpd", 
+                        drm: true,
+                        groupTitle: "Converge"
+                    },
+                    { 
+                        id: 'conv-1088', 
+                        channelName: "TV5", 
+                        tvgLogo: "https://ottepg8.comclark.com:8443/iptvepg/images/markurl/mark_1723134335547.png", 
+                        manifestUrl: "https://converse.nathcreqtives.com/1088/manifest.mpd", 
+                        drm: true,
+                        groupTitle: "Converge"
+                    },
+                    { 
+                        id: 'conv-1093', 
+                        channelName: "GMA 7", 
+                        tvgLogo: "https://ottepg8.comclark.com:8443/iptvepg/images/markurl/mark_1723126306082.png", 
+                        manifestUrl: "https://converse.nathcreqtives.com/1093/manifest.mpd", 
+                        drm: true,
+                        groupTitle: "Converge"
+                    }
                 ];
-
-                this.currentProvider = 'cignal'; // 'cignal' or 'converge'
 
                 this.initializeApp();
             }
@@ -619,7 +795,8 @@
                 this.setupEventListeners();
                 this.updateFavoritesUI();
                 this.updateRecentChannelsUI();
-                this.updateLayout();
+                this.applyTheme();
+                this.applyLayout();
             }
 
             initializePlayer() {
@@ -628,14 +805,14 @@
 
                 this.player.addEventListener('loading', () => {
                     document.getElementById('loading').style.display = 'block';
-                    this.updateChannelStatus('Loading...');
+                    this.updateChannelStatus('Loading channel...');
                 });
 
                 this.player.addEventListener('loaded', () => {
                     document.getElementById('loading').style.display = 'none';
                     this.updateChannelStatus('Playing');
                     document.getElementById('video').play().catch(e => {
-                        console.log('Auto-play prevented by browser:', e);
+                        console.log('Auto-play prevented:', e);
                         this.showToast('Tap the video to play');
                     });
                 });
@@ -643,6 +820,7 @@
                 this.player.addEventListener('error', (error) => {
                     document.getElementById('loading').style.display = 'none';
                     this.updateChannelStatus('Error loading channel');
+                    this.showToast('Error loading channel. Trying next channel...');
                     console.error('Player error:', error);
                 });
             }
@@ -654,7 +832,7 @@
 
             async loadPlaylistFromUrl(url) {
                 try {
-                    document.getElementById('loading').style.display = 'block';
+                    this.showToast('Loading channels...');
                     this.updateChannelStatus('Loading playlist...');
 
                     const response = await fetch(url);
@@ -662,289 +840,240 @@
                         const text = await response.text();
                         this.parsePlaylist(text);
                     } else {
-                        this.showToast('Failed to load playlist');
-                        // Load sample channels if playlist fails
+                        this.showToast('Failed to load playlist. Loading sample channels...');
                         this.loadSampleChannels();
                     }
                 } catch (error) {
                     console.error('Error loading playlist:', error);
-                    this.showToast('Error loading playlist');
-                    // Load sample channels if playlist fails
+                    this.showToast('Network error. Loading sample channels...');
                     this.loadSampleChannels();
-                } finally {
-                    document.getElementById('loading').style.display = 'none';
                 }
             }
 
             loadSampleChannels() {
-                // Sample channels if playlist fails to load
+                // Load sample channels if playlist fails
                 this.channels = [
-                    { id: 1, channelName: "ABS-CBN", tvgLogo: "", groupTitle: "Entertainment", manifestUrl: "", url: "" },
-                    { id: 2, channelName: "GMA 7", tvgLogo: "", groupTitle: "Entertainment", manifestUrl: "", url: "" },
-                    { id: 3, channelName: "TV5", tvgLogo: "", groupTitle: "Entertainment", manifestUrl: "", url: "" },
-                    { id: 4, channelName: "CNN Philippines", tvgLogo: "", groupTitle: "News", manifestUrl: "", url: "" },
-                    { id: 5, channelName: "ANC", tvgLogo: "", groupTitle: "News", manifestUrl: "", url: "" },
-                    { id: 6, channelName: "Basketball TV", tvgLogo: "", groupTitle: "Sports", manifestUrl: "", url: "" },
-                    { id: 7, channelName: "NBA TV", tvgLogo: "", groupTitle: "Sports", manifestUrl: "", url: "" },
-                    { id: 8, channelName: "HBO", tvgLogo: "", groupTitle: "Movies", manifestUrl: "", url: "" },
-                    { id: 9, channelName: "Cinema One", tvgLogo: "", groupTitle: "Movies", manifestUrl: "", url: "" },
-                    { id: 10, channelName: "Myx", tvgLogo: "", groupTitle: "Music", manifestUrl: "", url: "" },
-                    { id: 11, channelName: "MTV", tvgLogo: "", groupTitle: "Music", manifestUrl: "", url: "" },
-                    { id: 12, channelName: "Cartoon Network", tvgLogo: "", groupTitle: "Kids", manifestUrl: "", url: "" }
+                    { id: 1, channelName: "ABS-CBN HD", tvgLogo: "", groupTitle: "Entertainment", manifestUrl: "" },
+                    { id: 2, channelName: "GMA 7 HD", tvgLogo: "", groupTitle: "Entertainment", manifestUrl: "" },
+                    { id: 3, channelName: "TV5", tvgLogo: "", groupTitle: "Entertainment", manifestUrl: "" },
+                    { id: 4, channelName: "CNN Philippines", tvgLogo: "", groupTitle: "News", manifestUrl: "" },
+                    { id: 5, channelName: "ANC", tvgLogo: "", groupTitle: "News", manifestUrl: "" },
+                    { id: 6, channelName: "Basketball TV", tvgLogo: "", groupTitle: "Sports", manifestUrl: "" },
+                    { id: 7, channelName: "NBA TV", tvgLogo: "", groupTitle: "Sports", manifestUrl: "" },
+                    { id: 8, channelName: "HBO", tvgLogo: "", groupTitle: "Movies", manifestUrl: "" },
+                    { id: 9, channelName: "Cinema One", tvgLogo: "", groupTitle: "Movies", manifestUrl: "" },
+                    { id: 10, channelName: "Myx", tvgLogo: "", groupTitle: "Music", manifestUrl: "" },
+                    { id: 11, channelName: "MTV", tvgLogo: "", groupTitle: "Music", manifestUrl: "" },
+                    { id: 12, channelName: "Cartoon Network", tvgLogo: "", groupTitle: "Kids", manifestUrl: "" },
+                    { id: 13, channelName: "Discovery", tvgLogo: "", groupTitle: "Documentary", manifestUrl: "" },
+                    { id: 14, channelName: "Nat Geo", tvgLogo: "", groupTitle: "Documentary", manifestUrl: "" },
+                    { id: 15, channelName: "Food Network", tvgLogo: "", groupTitle: "Lifestyle", manifestUrl: "" },
+                    { id: 16, channelName: "TLC", tvgLogo: "", groupTitle: "Lifestyle", manifestUrl: "" }
                 ];
                 
-                this.extractCategories();
-                this.updateChannelList();
                 this.updateQuickChannels();
                 this.showToast(`Loaded ${this.channels.length} sample channels`);
-            }
-
-            parsePlaylist(content) {
-                const m3u8Interpreter = new M3U8Interpreter(content);
-                m3u8Interpreter.parse();
-                this.channels = m3u8Interpreter.getChannels() || [];
-
-                this.extractCategories();
-
-                const urls = m3u8Interpreter.getUrlTvg();
-                if (urls && urls.length > 0) {
-                    try {
-                        this.xmlepg = new XMLEPG();
-                        this.xmlepg.setPlaylistChannels(this.channels);
-                        this.xmlepg.load(urls);
-                    } catch (e) {
-                        console.warn('EPG load failed', e);
-                    }
-                }
-
-                this.updateChannelList();
-                this.updateQuickChannels();
-
+                
                 if (this.channels.length > 0) {
-                    // play first playlist channel by default
                     this.playChannel(0);
                 }
             }
 
-            extractCategories() {
-                this.categories = {
-                    'all': this.channels,
-                    'favorites': this.channels.filter((channel, index) => this.favorites.includes(index))
-                };
-
-                this.channels.forEach(channel => {
-                    if (channel.groupTitle && !this.categories[channel.groupTitle]) {
-                        this.categories[channel.groupTitle] = this.channels.filter(c => c.groupTitle === channel.groupTitle);
+            parsePlaylist(content) {
+                try {
+                    const m3u8Interpreter = new M3U8Interpreter(content);
+                    m3u8Interpreter.parse();
+                    this.channels = m3u8Interpreter.getChannels() || [];
+                    
+                    this.updateQuickChannels();
+                    this.showToast(`Successfully loaded ${this.channels.length} channels`);
+                    
+                    if (this.channels.length > 0) {
+                        this.playChannel(0);
                     }
-                });
-
-                // Also create category for channels without group
-                const noCategory = this.channels.filter(c => !c.groupTitle);
-                if (noCategory.length > 0) {
-                    this.categories['uncategorized'] = noCategory;
+                } catch (e) {
+                    console.error('Error parsing playlist:', e);
+                    this.showToast('Error parsing playlist. Loading sample channels...');
+                    this.loadSampleChannels();
                 }
-            }
-
-            updateChannelList() {
-                const channelsList = document.getElementById('channels-list');
-                channelsList.innerHTML = '';
-
-                this.channels.forEach((channel, index) => {
-                    const channelItem = this.createChannelItem(channel, index);
-                    channelsList.appendChild(channelItem);
-                });
-            }
-
-            createChannelItem(channel, index) {
-                const channelItem = document.createElement('div');
-                channelItem.className = 'channel-item';
-                if (index === this.currentChannelIndex) channelItem.classList.add('active');
-
-                const isFavorite = this.favorites.includes(index);
-
-                channelItem.innerHTML = `
-                    <img src="${channel.tvgLogo || ''}" alt="${channel.channelName || ''}" class="channel-logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjNjFkYWZiIi8+PHRleHQgeD0iMTIiIHk9IjEyIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiMwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5UVjwvdGV4dD4='">
-                    <span class="channel-name">${channel.channelName || 'Unknown'}</span>
-                    ${isFavorite ? '<span class="channel-fav"><i class="fas fa-star"></i></span>' : ''}
-                `;
-
-                channelItem.addEventListener('click', () => {
-                    this.playChannel(index);
-                    this.hideChannelList();
-                });
-
-                return channelItem;
             }
 
             updateQuickChannels() {
                 const quickChannels = document.getElementById('quick-channels');
                 quickChannels.innerHTML = '';
-
-                // Show loading if no channels
-                if ((this.currentProvider === 'cignal' && (!this.channels || this.channels.length === 0)) ||
-                    (this.currentProvider === 'converge' && (!this.convergeChannels || this.convergeChannels.length === 0))) {
-                    quickChannels.innerHTML = `<div class="loading-channels">Loading channels...</div>`;
-                    return;
-                }
-
-                // Show channels based on current provider
+                
+                let channelsToShow = [];
+                
                 if (this.currentProvider === 'converge') {
-                    this.convergeChannels.forEach((channel, idx) => {
-                        const quickChannel = this.createQuickChannel(channel, idx, true);
-                        quickChannels.appendChild(quickChannel);
-                    });
-                    this.showToast(`Loaded ${this.convergeChannels.length} Converge channels`);
-                    return;
+                    channelsToShow = this.convergeChannels;
+                } else {
+                    channelsToShow = this.channels;
                 }
-
-                // Show Cignal channels
-                const channelsToShow = this.categories[this.currentCategory] || this.channels;
-
+                
                 if (!channelsToShow || channelsToShow.length === 0) {
-                    let message = 'No channels available';
-                    if (this.currentCategory === 'favorites') message = 'No favorite channels. Tap the star to add favorites.';
-                    quickChannels.innerHTML = `<div class="loading-channels">${message}</div>`;
+                    quickChannels.innerHTML = `
+                        <div class="loading-channels">
+                            <i class="fas fa-exclamation-circle"></i><br>
+                            No channels available
+                        </div>
+                    `;
                     return;
                 }
-
-                channelsToShow.forEach((channel) => {
-                    const originalIndex = this.channels.findIndex(c => 
-                        (c.manifestUrl || c.url || c.file) === (channel.manifestUrl || channel.url || channel.file)
-                    );
-                    if (originalIndex >= 0) {
-                        const quickChannel = this.createQuickChannel(channel, originalIndex, false);
-                        quickChannels.appendChild(quickChannel);
-                    }
+                
+                channelsToShow.forEach((channel, index) => {
+                    const channelElement = this.createChannelElement(channel, index);
+                    quickChannels.appendChild(channelElement);
                 });
-
-                if (this.currentCategory === 'all') {
-                    this.showToast(`Loaded ${this.channels.length} channels`);
-                }
+                
+                this.updateChannelCount();
             }
 
-            createQuickChannel(channel, originalIndex, isConverge) {
-                const quickChannel = document.createElement('div');
-                quickChannel.className = 'quick-channel';
-                if (originalIndex === this.currentChannelIndex && !isConverge) quickChannel.classList.add('active');
-
-                const isFavorite = this.favorites.includes(originalIndex);
-
-                quickChannel.innerHTML = `
-                    <img src="${channel.tvgLogo || ''}" alt="${channel.channelName || ''}" class="channel-logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjNjFkYWZiIi8+PHRleHQgeD0iMTIiIHk9IjEyIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiMwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5UVjwvdGV4dD4='">
-                    <span class="channel-name">${channel.channelName || 'Unknown Channel'}</span>
-                    ${isFavorite ? '<span class="channel-fav"><i class="fas fa-star"></i></span>' : ''}
-                    ${isConverge && channel.drm ? '<span class="channel-fav"><i class="fas fa-lock"></i></span>' : ''}
+            createChannelElement(channel, index) {
+                const div = document.createElement('div');
+                div.className = 'quick-channel';
+                
+                // Check if this is the current channel
+                if (index === this.currentChannelIndex && 
+                    ((this.currentProvider === 'cignal' && this.channels[index] === channel) ||
+                     (this.currentProvider === 'converge' && this.convergeChannels[index] === channel))) {
+                    div.classList.add('active');
+                }
+                
+                // Check if favorite (for Cignal channels only)
+                const isFavorite = this.currentProvider === 'cignal' && 
+                                 this.favorites.includes(this.channels.findIndex(c => c === channel));
+                
+                div.innerHTML = `
+                    <img src="${channel.tvgLogo || ''}" class="channel-logo" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNjFkYWZiIi8+PHRleHQgeD0iMTYiIHk9IjE2IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiMwMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5UVjwvdGV4dD48L3N2Zz4='">
+                    <div class="channel-name">${channel.channelName || 'Channel'}</div>
+                    ${isFavorite ? '<div class="channel-fav"><i class="fas fa-star"></i></div>' : ''}
+                    ${channel.drm ? '<div class="channel-lock"><i class="fas fa-lock"></i></div>' : ''}
                 `;
-
-                quickChannel.addEventListener('click', () => {
-                    if (isConverge) {
-                        this.playConvergeChannel(originalIndex);
+                
+                div.addEventListener('click', () => {
+                    if (this.currentProvider === 'cignal') {
+                        const channelIndex = this.channels.findIndex(c => c === channel);
+                        if (channelIndex >= 0) {
+                            this.playChannel(channelIndex);
+                        }
                     } else {
-                        this.playChannel(originalIndex);
+                        this.playConvergeChannel(index);
                     }
                 });
-
-                return quickChannel;
+                
+                return div;
             }
 
             async playChannel(index) {
-                if (typeof index !== 'number' || index < 0 || index >= this.channels.length) {
-                    console.error('Invalid channel index', index);
-                    return;
-                }
-
+                if (index < 0 || index >= this.channels.length) return;
+                
                 this.currentChannelIndex = index;
                 const channel = this.channels[index];
+                
+                // Update UI
+                this.updateChannelInfo(channel.channelName || 'Channel', 'Loading...');
+                this.updateFavoritesUI();
+                this.updateQuickChannels();
                 this.addToRecent(index);
-
-                try {
-                    // Determine manifest URL from common properties
-                    const manifest = channel.manifestUrl || channel.url || channel.file;
-                    if (!manifest) {
-                        this.showToast('Channel stream not available');
-                        this.updateChannelInfo(channel.channelName || 'Channel');
-                        this.updateFavoriteButton();
-                        this.updateQuickChannels();
-                        this.updateChannelList();
-                        return;
+                
+                // Show loading
+                document.getElementById('loading').style.display = 'block';
+                
+                // Try to load the stream
+                const manifest = channel.manifestUrl || channel.url || channel.file;
+                
+                if (manifest) {
+                    try {
+                        await this.player.load(manifest);
+                        this.showToast(`Now playing: ${channel.channelName}`);
+                    } catch (error) {
+                        console.error('Error loading stream:', error);
+                        this.showToast('Stream not available');
+                        this.updateChannelStatus('Offline');
                     }
-
-                    // DRM switching logic
-                    if (typeof manifest === 'string' && manifest.includes('converse.nathcreqtives.com')) {
-                        // Converge case
-                        this.player.configure({
-                            drm: {
-                                servers: { 'com.widevine.alpha': this.convergeLicense }
-                            }
-                        });
-                    } else {
-                        // For playlist channels
-                        let licenseKey = channel.licenseKey || channel.license || null;
-                        if (licenseKey && !Array.isArray(licenseKey)) {
-                            try { licenseKey = JSON.parse(decodeURIComponent(licenseKey)); } catch(e) { }
-                        }
-
-                        if (Array.isArray(licenseKey)) {
-                            const clearKeys = {};
-                            licenseKey.forEach(pair => { if (pair.keyId && pair.key) clearKeys[pair.keyId] = pair.key; });
-                            this.player.configure({ drm: { clearKeys }});
-                        } else if (typeof licenseKey === 'string' && licenseKey.startsWith('http')) {
-                            this.player.configure({ drm: { servers: { 'com.widevine.alpha': licenseKey } }});
-                        } else {
-                            this.player.configure({ drm: { servers: {} }});
-                        }
-                    }
-
-                    await this.player.load(manifest);
-                    this.updateChannelInfo(channel.channelName || 'Channel');
-                    this.updateFavoriteButton();
-                    this.updateQuickChannels();
-                    this.showToast(`Now playing: ${channel.channelName || 'Channel'}`);
-                } catch (err) {
-                    console.error('playChannel error', err);
-                    this.showToast('Error playing channel');
-                    this.updateChannelStatus('Error');
+                } else {
+                    this.showToast('No stream available for this channel');
+                    this.updateChannelStatus('No Stream');
                 }
+                
+                document.getElementById('loading').style.display = 'none';
             }
 
-            async playConvergeChannel(idx) {
-                const channel = this.convergeChannels[idx];
-                if (!channel) {
-                    this.showToast('Converge channel not found');
-                    return;
-                }
-
-                // Add to converge recent
+            async playConvergeChannel(index) {
+                if (index < 0 || index >= this.convergeChannels.length) return;
+                
+                const channel = this.convergeChannels[index];
+                
+                // Update UI
+                this.updateChannelInfo(channel.channelName, 'Loading Converge...');
+                this.updateQuickChannels();
                 this.addToRecentConverge(channel.id);
-
+                
+                // Show loading
+                document.getElementById('loading').style.display = 'block';
+                
                 try {
-                    // Configure Widevine license server specifically for Converge
+                    // Configure DRM for Converge
                     if (channel.drm) {
                         this.player.configure({
                             drm: {
                                 servers: {
-                                    'com.widevine.alpha': this.convergeLicense
+                                    'com.widevine.alpha': 'https://key.nathcreqtives.com/widevine/?deviceId=02:00:00:00:00:00'
                                 }
                             }
                         });
-                    } else {
-                        this.player.configure({ drm: { servers: {} }});
                     }
-
+                    
                     await this.player.load(channel.manifestUrl);
-                    this.updateChannelInfo(channel.channelName);
-                    this.updateFavoriteButton();
-                    this.updateQuickChannels();
                     this.showToast(`Now playing: ${channel.channelName}`);
-                } catch (err) {
-                    console.error('Converge play error', err);
-                    this.showToast('Error playing Converge channel');
-                    this.updateChannelStatus('Error');
+                } catch (error) {
+                    console.error('Error loading Converge channel:', error);
+                    this.showToast('Error loading Converge channel');
+                    this.updateChannelStatus('DRM Error');
                 }
+                
+                document.getElementById('loading').style.display = 'none';
+            }
+
+            updateChannelInfo(name, status) {
+                document.getElementById('current-channel').textContent = name;
+                document.getElementById('channel-status').textContent = status;
+            }
+
+            updateChannelStatus(status) {
+                document.getElementById('channel-status').textContent = status;
+            }
+
+            updateFavoritesUI() {
+                const favoriteBtn = document.getElementById('favorite-btn');
+                const isFavorite = this.favorites.includes(this.currentChannelIndex);
+                favoriteBtn.classList.toggle('active', isFavorite);
+                favoriteBtn.innerHTML = isFavorite ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+            }
+
+            toggleFavorite() {
+                if (this.currentProvider !== 'cignal') {
+                    this.showToast('Favorites only available for Cignal channels');
+                    return;
+                }
+                
+                if (this.favorites.includes(this.currentChannelIndex)) {
+                    this.favorites = this.favorites.filter(i => i !== this.currentChannelIndex);
+                    this.showToast('Removed from favorites');
+                } else {
+                    this.favorites.push(this.currentChannelIndex);
+                    this.showToast('Added to favorites');
+                }
+                
+                localStorage.setItem('iptv_favorites', JSON.stringify(this.favorites));
+                this.updateFavoritesUI();
+                this.updateQuickChannels();
             }
 
             addToRecent(index) {
-                // numeric indexes only (playlist channels)
+                if (this.currentProvider !== 'cignal') return;
+                
                 this.recentChannels = this.recentChannels.filter(i => i !== index);
                 this.recentChannels.unshift(index);
                 if (this.recentChannels.length > 5) this.recentChannels = this.recentChannels.slice(0,5);
@@ -964,192 +1093,244 @@
             updateRecentChannelsUI() {
                 const recentContainer = document.getElementById('recent-channels');
                 recentContainer.innerHTML = '<span class="recent-label">Recent:</span>';
-
-                const numericRecent = (this.recentChannels || []).filter(i => typeof i === 'number').slice(0,5);
-                const convRecent = JSON.parse(localStorage.getItem('iptv_recent_converge') || '[]').slice(0,5);
-
-                numericRecent.forEach(index => {
+                
+                // Add Cignal recent channels
+                this.recentChannels.forEach(index => {
                     const channel = this.channels[index];
                     if (!channel) return;
+                    
                     const recentEl = document.createElement('div');
                     recentEl.className = 'recent-channel';
                     recentEl.innerHTML = `
-                        <img src="${channel.tvgLogo || ''}" alt="${channel.channelName || ''}" onerror="this.style.display='none'">
                         <span>${channel.channelName}</span>
                     `;
-                    recentEl.addEventListener('click', () => this.playChannel(index));
+                    recentEl.addEventListener('click', () => {
+                        this.currentProvider = 'cignal';
+                        this.playChannel(index);
+                        this.updateProviderButtons();
+                    });
                     recentContainer.appendChild(recentEl);
                 });
-
+                
+                // Add Converge recent channels
+                const convRecent = JSON.parse(localStorage.getItem('iptv_recent_converge') || '[]');
                 convRecent.forEach(convId => {
                     const channel = this.convergeChannels.find(c => c.id === convId);
                     if (!channel) return;
+                    
                     const recentEl = document.createElement('div');
                     recentEl.className = 'recent-channel';
                     recentEl.innerHTML = `
-                        <img src="${channel.tvgLogo || ''}" alt="${channel.channelName || ''}" onerror="this.style.display='none'">
                         <span>${channel.channelName} (C)</span>
                     `;
                     recentEl.addEventListener('click', () => {
+                        this.currentProvider = 'converge';
                         const idx = this.convergeChannels.findIndex(c => c.id === convId);
                         if (idx >= 0) this.playConvergeChannel(idx);
+                        this.updateProviderButtons();
                     });
                     recentContainer.appendChild(recentEl);
                 });
             }
 
-            toggleFavorite() {
-                const index = this.currentChannelIndex;
-                if (this.favorites.includes(index)) {
-                    this.favorites = this.favorites.filter(i => i !== index);
-                    this.showToast('Removed from favorites');
+            updateProviderButtons() {
+                const cignalBtn = document.getElementById('cignal-btn');
+                const convergeBtn = document.getElementById('converge-btn');
+                
+                if (this.currentProvider === 'cignal') {
+                    cignalBtn.style.opacity = '1';
+                    cignalBtn.style.transform = 'scale(1.05)';
+                    convergeBtn.style.opacity = '0.7';
+                    convergeBtn.style.transform = 'scale(1)';
                 } else {
-                    this.favorites.push(index);
-                    this.showToast('Added to favorites');
+                    cignalBtn.style.opacity = '0.7';
+                    cignalBtn.style.transform = 'scale(1)';
+                    convergeBtn.style.opacity = '1';
+                    convergeBtn.style.transform = 'scale(1.05)';
                 }
-                localStorage.setItem('iptv_favorites', JSON.stringify(this.favorites));
-                this.categories.favorites = this.channels.filter((channel, idx) => this.favorites.includes(idx));
-                this.updateFavoriteButton();
-                this.updateQuickChannels();
-                this.updateChannelList();
             }
 
-            updateFavoriteButton() {
-                const favoriteBtn = document.getElementById('favorite-btn');
-                const isFavorite = this.favorites.includes(this.currentChannelIndex);
-                favoriteBtn.classList.toggle('active', isFavorite);
-                favoriteBtn.innerHTML = isFavorite ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+            updateChannelCount() {
+                const count = this.currentProvider === 'cignal' ? 
+                    this.channels.length : this.convergeChannels.length;
+                const status = `${count} channels loaded`;
+                document.getElementById('channel-status').textContent = status;
             }
 
-            updateFavoritesUI() { this.updateFavoriteButton(); }
-
-            updateChannelInfo(channelName) { 
-                document.getElementById('current-channel').textContent = channelName; 
+            applyTheme() {
+                // Remove all theme classes
+                document.body.classList.remove('theme-dark', 'theme-light', 'theme-blue');
+                // Add current theme
+                document.body.classList.add(`theme-${this.currentTheme}`);
+                
+                // Update settings dropdown
+                document.getElementById('theme-select').value = this.currentTheme;
             }
 
-            updateChannelStatus(status) { 
-                document.getElementById('channel-status').textContent = status; 
-            }
-
-            updateLayout() {
+            applyLayout() {
                 const quickChannels = document.getElementById('quick-channels');
+                
                 switch(this.currentLayout) {
+                    case '2col':
+                        quickChannels.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                        break;
+                    case '3col':
+                        quickChannels.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                        break;
                     case 'list':
                         quickChannels.style.gridTemplateColumns = '1fr';
                         break;
-                    case 'grid':
-                        quickChannels.style.gridTemplateColumns = '1fr 1fr 1fr';
-                        break;
-                    case 'compact':
+                    case '4col':
                     default:
-                        quickChannels.style.gridTemplateColumns = '1fr 1fr';
+                        quickChannels.style.gridTemplateColumns = 'repeat(4, 1fr)';
                         break;
                 }
+                
+                // Update settings dropdown
+                document.getElementById('layout-select').value = this.currentLayout;
             }
 
             toggleFullscreen() {
                 this.isFullscreen = !this.isFullscreen;
                 const appContainer = document.getElementById('app-container');
                 const maximizeBtn = document.getElementById('maximize-btn');
+                
                 if (this.isFullscreen) {
                     appContainer.classList.add('fullscreen');
-                    maximizeBtn.textContent = '⛷';
+                    maximizeBtn.textContent = '⛶';
+                    this.showToast('Fullscreen mode');
                 } else {
                     appContainer.classList.remove('fullscreen');
                     maximizeBtn.textContent = '⛶';
                 }
             }
 
-            switchProvider(provider) {
-                this.currentProvider = provider;
-                this.currentCategory = 'all';
-                this.updateQuickChannels();
-                
-                // Update provider buttons
-                document.getElementById('cignal-btn').style.opacity = provider === 'cignal' ? '1' : '0.7';
-                document.getElementById('converge-btn').style.opacity = provider === 'converge' ? '1' : '0.7';
-                
-                this.showToast(`Switched to ${provider === 'cignal' ? 'Cignal' : 'Converge'}`);
-            }
-
             showAllChannels() {
-                this.currentCategory = 'all';
-                this.updateQuickChannels();
                 this.showToast('Showing all channels');
+                // This function can be expanded to show a modal with all channels
             }
 
             showFavorites() {
-                this.currentCategory = 'favorites';
-                this.updateQuickChannels();
-                this.showToast('Showing favorite channels');
+                if (this.favorites.length === 0) {
+                    this.showToast('No favorite channels yet');
+                    return;
+                }
+                this.showToast(`Showing ${this.favorites.length} favorite channels`);
+                // This function can be expanded to filter to favorites only
             }
 
-            setupEventListeners() {
-                document.getElementById('maximize-btn').addEventListener('click', () => this.toggleFullscreen());
-                document.getElementById('channel-search').addEventListener('input', (e) => this.filterChannels(e.target.value));
-                document.getElementById('favorite-btn').addEventListener('click', () => this.toggleFavorite());
-                document.getElementById('settings-btn').addEventListener('click', () => this.showSettings());
-                document.getElementById('all-channels-btn').addEventListener('click', () => this.showAllChannels());
-                document.getElementById('fav-channels-btn').addEventListener('click', () => this.showFavorites());
-                document.getElementById('close-settings').addEventListener('click', () => this.hideSettings());
-                document.getElementById('volume-slider').addEventListener('input', (e) => { 
-                    document.getElementById('video').volume = e.target.value / 100; 
-                });
-
-                // Provider buttons
-                document.getElementById('cignal-btn').addEventListener('click', () => {
-                    this.switchProvider('cignal');
-                });
-
-                document.getElementById('converge-btn').addEventListener('click', () => {
-                    this.switchProvider('converge');
-                });
-
-                document.getElementById('close-channels').addEventListener('click', () => this.hideChannelList());
-
-                // Settings layout change
-                document.getElementById('layout-select').addEventListener('change', (e) => {
-                    this.currentLayout = e.target.value;
-                    localStorage.setItem('iptv_layout', this.currentLayout);
-                    this.updateLayout();
-                    this.showToast(`Layout changed to ${this.currentLayout}`);
-                });
+            refreshChannels() {
+                this.showToast('Refreshing channels...');
+                this.loadDefaultPlaylist();
             }
 
-            showSettings() { 
-                document.getElementById('settings-panel').classList.add('open'); 
+            showSettings() {
+                document.getElementById('settings-panel').classList.add('open');
             }
 
-            hideSettings() { 
-                document.getElementById('settings-panel').classList.remove('open'); 
-            }
-
-            hideChannelList() { 
-                document.getElementById('channel-overlay').style.display = 'none'; 
-            }
-
-            filterChannels(searchTerm) {
-                const channelItems = document.querySelectorAll('.channel-item');
-                const searchLower = (searchTerm || '').toLowerCase();
-                channelItems.forEach(item => {
-                    const channelName = (item.querySelector('.channel-name')?.textContent || '').toLowerCase();
-                    item.style.display = channelName.includes(searchLower) ? 'flex' : 'none';
-                });
+            hideSettings() {
+                document.getElementById('settings-panel').classList.remove('open');
             }
 
             showToast(message) {
+                // Remove existing toast
+                const existingToast = document.querySelector('.toast');
+                if (existingToast) existingToast.remove();
+                
+                // Create new toast
                 const toast = document.createElement('div');
                 toast.className = 'toast';
                 toast.textContent = message;
                 document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 3000);
+            }
+
+            setupEventListeners() {
+                // Fullscreen button
+                document.getElementById('maximize-btn').addEventListener('click', () => this.toggleFullscreen());
+                
+                // Favorite button
+                document.getElementById('favorite-btn').addEventListener('click', () => this.toggleFavorite());
+                
+                // Provider buttons
+                document.getElementById('cignal-btn').addEventListener('click', () => {
+                    this.currentProvider = 'cignal';
+                    this.updateQuickChannels();
+                    this.updateProviderButtons();
+                    this.showToast('Switched to Cignal channels');
+                });
+                
+                document.getElementById('converge-btn').addEventListener('click', () => {
+                    this.currentProvider = 'converge';
+                    this.updateQuickChannels();
+                    this.updateProviderButtons();
+                    this.showToast('Switched to Converge channels');
+                });
+                
+                // Bottom action buttons
+                document.getElementById('all-channels-btn').addEventListener('click', () => this.showAllChannels());
+                document.getElementById('fav-channels-btn').addEventListener('click', () => this.showFavorites());
+                document.getElementById('refresh-btn').addEventListener('click', () => this.refreshChannels());
+                document.getElementById('settings-btn').addEventListener('click', () => this.showSettings());
+                
+                // Close settings
+                document.getElementById('close-settings').addEventListener('click', () => this.hideSettings());
+                
+                // Settings changes
+                document.getElementById('theme-select').addEventListener('change', (e) => {
+                    this.currentTheme = e.target.value;
+                    localStorage.setItem('iptv_theme', this.currentTheme);
+                    this.applyTheme();
+                    this.showToast(`Theme changed to ${this.currentTheme}`);
+                });
+                
+                document.getElementById('layout-select').addEventListener('change', (e) => {
+                    this.currentLayout = e.target.value;
+                    localStorage.setItem('iptv_layout', this.currentLayout);
+                    this.applyLayout();
+                    this.showToast(`Layout changed to ${this.currentLayout}`);
+                });
+                
+                document.getElementById('parental-btn').addEventListener('click', () => {
+                    this.showToast('Parental controls feature coming soon');
+                });
+                
+                document.getElementById('clear-data-btn').addEventListener('click', () => {
+                    if (confirm('Clear all cache and favorites?')) {
+                        localStorage.clear();
+                        this.favorites = [];
+                        this.recentChannels = [];
+                        this.showToast('All data cleared');
+                        this.updateFavoritesUI();
+                        this.updateRecentChannelsUI();
+                    }
+                });
+                
+                // Volume slider
+                document.getElementById('volume-slider').addEventListener('input', (e) => {
+                    document.getElementById('video').volume = e.target.value / 100;
+                });
+                
+                // Close channels overlay
+                document.getElementById('close-channels').addEventListener('click', () => {
+                    document.getElementById('channel-overlay').style.display = 'none';
+                });
+                
+                // Initialize provider buttons
+                this.updateProviderButtons();
             }
         }
 
         // Initialize the app
         let iptvApp;
-        document.addEventListener('DOMContentLoaded', () => { 
-            iptvApp = new CompactMobileIPTV(); 
+        document.addEventListener('DOMContentLoaded', () => {
+            iptvApp = new MobileIPTVPlayer();
         });
     </script>
 </body>
