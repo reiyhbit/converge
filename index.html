@@ -193,28 +193,28 @@
             border-bottom-color: #61dafb;
         }
         
-        /* Quick channels - UPDATED TO 4 COLUMNS */
+        /* Quick channels - 4 columns na may mas maliit at paretangle na buttons */
         #quick-channels {
             flex: 1;
             overflow-y: auto;
             padding: 5px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* CHANGED FROM 2 to 4 COLUMNS */
-            gap: 5px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
             max-height: none;
         }
         
         .quick-channel {
             display: flex;
-            flex-direction: column; /* Stack vertically for better 4-col display */
-            align-items: center;
-            padding: 8px 4px;
+            align-items: center; /* ibalik sa horizontal alignment */
+            padding: 4px 6px; /* mas liit na padding */
             background: #3c4043;
-            border-radius: 6px;
+            border-radius: 4px; /* mas paretangle (less rounded) */
             cursor: pointer;
-            min-height: 70px; /* Slightly taller for vertical layout */
+            min-height: 36px; /* mas maliit na height */
             position: relative;
-            text-align: center;
+            border: none;
+            gap: 4px; /* space between logo and text */
         }
         
         .quick-channel:active {
@@ -227,17 +227,16 @@
         }
         
         .channel-logo {
-            width: 30px; /* Slightly larger for better visibility */
-            height: 30px;
-            margin-bottom: 4px; /* Margin bottom instead of right */
-            border-radius: 4px;
+            width: 20px; /* mas maliit na logo */
+            height: 20px;
+            border-radius: 3px;
             object-fit: cover;
             flex-shrink: 0;
         }
         
         .channel-name {
-            font-size: 10px; /* Slightly smaller to fit */
-            width: 100%;
+            font-size: 9px; /* mas maliit na text */
+            flex: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -246,11 +245,9 @@
         
         .channel-fav {
             color: #ff6b35;
-            font-size: 9px;
-            margin-top: 2px;
-            position: absolute;
-            top: 2px;
-            right: 2px;
+            font-size: 8px;
+            margin-left: 2px;
+            flex-shrink: 0;
         }
         
         /* All Channels Button */
@@ -556,9 +553,9 @@
                 <button class="nav-btn" id="next-channel">NEXT →</button>
             </div>
             
-            <!-- Quick Channels List - NOW IN 4 COLUMNS -->
+            <!-- Quick Channels List - NOW WITH SMALLER RECTANGLE BUTTONS -->
             <div id="quick-channels">
-                <!-- LAHAT ng channels lalabas dito - now in 4 columns -->
+                <!-- LAHAT ng channels lalabas dito - now smaller and rectangular -->
             </div>
             
             <!-- Bottom Action Buttons -->
@@ -829,12 +826,11 @@
                     if (this.currentCategory === 'favorites') {
                         message = 'No favorite channels. Tap the star to add favorites.';
                     }
-                    // Adjust grid column span for 4-col layout
-                    quickChannels.innerHTML = `<div style="grid-column: span 4; text-align: center; padding: 20px; color: #888; font-size: 14px;">${message}</div>`;
+                    quickChannels.innerHTML = `<div style="grid-column: span 4; text-align: center; padding: 15px; color: #888; font-size: 12px;">${message}</div>`;
                     return;
                 }
                 
-                // Display channels for current category in 4 columns
+                // Display channels for current category in 4 columns with smaller rectangle buttons
                 channelsToShow.forEach(channel => {
                     const originalIndex = this.channels.findIndex(c => c.manifestUrl === channel.manifestUrl);
                     const quickChannel = document.createElement('div');
@@ -845,7 +841,7 @@
                     
                     const isFavorite = this.favorites.includes(originalIndex);
                     
-                    // Adjusted for vertical layout with logo on top
+                    // Horizontal layout ulit para compact
                     quickChannel.innerHTML = `
                         <img src="${channel.tvgLogo}" alt="${channel.channelName}" class="channel-logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjNjFkYWZiIi8+Cjx0ZXh0IHg9IjEyIiB5PSIxMiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+VFY8L3RleHQ+Cjwvc3ZnPgo='">
                         <span class="channel-name">${channel.channelName}</span>
@@ -858,12 +854,6 @@
                     
                     quickChannels.appendChild(quickChannel);
                 });
-
-                // Show channel count
-                if (this.currentCategory === 'all') {
-                    // Optionally show toast, but commented to avoid spam on every update
-                    // this.showToast(`Loaded ${this.channels.length} channels`);
-                }
             }
             
             playChannel(index) {
